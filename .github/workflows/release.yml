@@ -26,18 +26,18 @@ jobs:
         dotnet-version: '9.0.x'
         
     - name: 还原依赖
-      run: dotnet restore
+      run: dotnet restore HarmonyOSToolbox.csproj
       
     - name: 构建项目
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build HarmonyOSToolbox.csproj --configuration Release --no-restore
       
     - name: 发布应用 (单文件)
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o publish/single-file
+        dotnet publish HarmonyOSToolbox.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o publish/single-file
         
     - name: 发布应用 (完整包含依赖)
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/self-contained
+        dotnet publish HarmonyOSToolbox.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/self-contained
         
     - name: 创建发布包
       run: |
