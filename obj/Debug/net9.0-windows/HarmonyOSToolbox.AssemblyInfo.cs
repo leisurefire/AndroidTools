@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HarmonyOSToolbox")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6854182e905b3560a9182a1c7e328f90008381a9")]
 [assembly: System.Reflection.AssemblyProductAttribute("HarmonyOSToolbox")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HarmonyOSToolbox")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
