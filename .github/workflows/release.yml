@@ -33,23 +33,21 @@ jobs:
       
     - name: 发布应用 (单文件)
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ./publish/single-file
+        dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o publish/single-file
         
     - name: 发布应用 (完整包含依赖)
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./publish/self-contained
+        dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/self-contained
         
     - name: 创建发布包
       run: |
-        # 创建单文件版本压缩包
-        Compress-Archive -Path ./publish/single-file/* -DestinationPath ./HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip
-        
-        # 创建完整版本压缩包
-        Compress-Archive -Path ./publish/self-contained/* -DestinationPath ./HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip
+        $version = "${{ github.event.inputs.version }}"
+        Compress-Archive -Path publish/single-file/* -DestinationPath "HarmonyOSToolbox-$version-single-file.zip"
+        Compress-Archive -Path publish/self-contained/* -DestinationPath "HarmonyOSToolbox-$version-self-contained.zip"
       shell: pwsh
       
     - name: 创建 Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.event.inputs.version }}
         name: 鸿蒙工具箱 ${{ github.event.inputs.version }}
@@ -58,35 +56,16 @@ jobs:
           
           **单文件版本** (需要系统已安装 .NET 9.0 运行时):
           - `HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip`
-          - 体积小，适合已安装 .NET 的用户
           
           **完整版本** (包含所有依赖):
           - `HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip`
-          - 体积较大，无需安装 .NET 运行时
           
           ## 📝 更新内容
           
           ${{ github.event.inputs.release_notes }}
-          
-          ## 🚀 使用方法
-          
-          1. 下载对应版本的压缩包
-          2. 解压到任意目录
-          3. 运行 `HarmonyOSToolbox.exe`
-          4. 按照应用内提示连接设备
-          
-          ## ⚠️ 注意事项
-          
-          - 使用前请开启手机的 USB 调试模式
-          - 建议使用完毕后重启手机
-          - 谨慎卸载系统应用，必要时做好数据备份
-          
-          ---
-          
-          **完整文档**: [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
         files: |
-          ./HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip
-          ./HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip
+          HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip
+          HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip
         draft: false
         prerelease: false
       env:
