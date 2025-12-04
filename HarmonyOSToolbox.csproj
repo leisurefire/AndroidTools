@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">  
+  
+  <PropertyGroup>  
+    <OutputType>WinExe</OutputType>  
+    <TargetFramework>net9.0-windows</TargetFramework>  
+    <Nullable>enable</Nullable>  
+    <UseWPF>true</UseWPF>  
+    <AssemblyName>HarmonyOSToolbox</AssemblyName>  
+    <RootNamespace>HarmonyOSToolbox</RootNamespace>  
+  </PropertyGroup>  
+  
+  <ItemGroup>  
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />  
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />  
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.0" />  
+  </ItemGroup>  
+  
+  <ItemGroup>  
+    <None Update="wwwroot\**\*">  
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>  
+    </None>  
+    <None Update="tools\adb\**\*">  
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>  
+    </None>  
+    <None Update="assets\**\*">  
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>  
+    </None>  
+  </ItemGroup>  
+  
+  <Target Name="KillProcessBeforeBuild" BeforeTargets="BeforeBuild">  
+    <Exec Command="cmd /c taskkill /F /IM HarmonyOSToolbox.exe &gt;nul 2&gt;&amp;1" IgnoreExitCode="true" />  
+    <Message Text="已尝试结束 HarmonyOSToolbox.exe 进程" Importance="high" />  
+  </Target>  
+  
+</Project> 

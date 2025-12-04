@@ -1,0 +1,11 @@
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\HarmonyOSToolbox.csproj.AssemblyReference.cache
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\MainWindow.baml
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\MainWindow.g.cs
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\App.g.cs
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\HarmonyOSToolbox_Content.g.cs
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\HarmonyOSToolbox_MarkupCompile.cache
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\HarmonyOSToolbox.g.resources
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\HarmonyOSToolbox.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\HarmonyOSToolbox.AssemblyInfoInputs.cache
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\HarmonyOSToolbox.AssemblyInfo.cs
+C:\Users\leisu\Desktop\鸿蒙工具箱桌面版\obj\Debug\net6.0-windows\HarmonyOSToolbox.csproj.CoreCompileInputs.cache

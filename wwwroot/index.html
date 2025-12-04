@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>鸿蒙工具箱 - GUI版</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- 左侧导航栏 -->
+      <nav class="sidebar">
+        <div class="sidebar-header">
+          <div class="app-branding">
+            <span class="app-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" fill="currentColor"/></svg>
+            </span>
+            <span class="app-title">鸿蒙工具箱</span>
+          </div>
+        </div>
+
+        <div class="nav-scroll-area">
+          <ul class="nav-menu">
+            <li class="nav-item active" data-tab="main">
+              <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg>
+              </span>
+              <span>主菜单</span>
+            </li>
+            <li class="nav-item" data-tab="custom">
+              <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              </span>
+              <span>定制模式</span>
+            </li>
+            <li class="nav-item" data-tab="monitor">
+              <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+              </span>
+              <span>监视模式</span>
+            </li>
+            <li class="nav-item" data-tab="animation">
+              <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M22 8l-4-4h-9l-4 4H2v12h20V8zM8 18c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12-3h-8v-2h8v2zm0-4h-8V9h8v2z"/></svg>
+              </span>
+              <span>动画模式</span>
+            </li>
+            <li class="nav-item" data-tab="function">
+              <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+              </span>
+              <span>功能模式</span>
+            </li>
+            <li class="nav-item" data-tab="help">
+              <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+              </span>
+              <span>帮助</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-footer">
+        </div>
+      </nav>
+
+      <!-- 右侧主要区域 -->
+      <div class="main-column">
+        <!-- 顶部栏 (状态 + 窗口控制) -->
+        <header class="window-header">
+          <div class="header-status">
+            <div class="status-indicator" id="statusIndicator">
+              <span class="status-dot"></span>
+              <span id="statusText">未连接设备</span>
+            </div>
+            <button class="btn btn-sm btn-secondary" id="refreshDeviceBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg> 刷新
+            </button>
+          </div>
+
+          <div class="window-controls">
+            <button class="caption-btn" id="minBtn" title="最小化">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path
+                  d="M0,5 L10,5 M0,6 L10,6"
+                  stroke="currentColor"
+                  stroke-width="1"
+                />
+              </svg>
+            </button>
+            <button class="caption-btn" id="maxBtn" title="最大化">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <rect x="1.5" y="1.5" width="7" height="7" stroke="currentColor" stroke-width="1" fill="none"/>
+              </svg>
+            </button>
+            <button class="caption-btn close-btn" id="closeBtn" title="关闭">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path
+                  d="M1,1 L9,9 M9,1 L1,9"
+                  stroke="currentColor"
+                  stroke-width="1"
+                />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- 内容显示区 -->
+        <main class="content-area">
+          <!-- 主菜单 -->
+          <section class="tab-content active" id="main">
+            <div class="section-header">
+              <h2>主菜单</h2>
+              <p>常用系统功能管理</p>
+            </div>
+            <div class="function-grid">
+              <div class="function-card" data-package="com.huawei.search">
+                <h3>智慧搜索</h3>
+                <p>下拉搜索：误触+广告</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div class="function-card" data-package="com.huawei.vassistant">
+                <h3>智慧语音</h3>
+                <p>后台占运存特大</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div class="function-card" data-package="com.huawei.hitouch">
+                <h3>智慧识屏</h3>
+                <p>双指按屏扫文字</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div
+                class="function-card"
+                data-package="com.huawei.ohos.suggestion"
+              >
+                <h3>智慧建议</h3>
+                <p>桌面的智慧卡片</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div class="function-card" data-package="com.huawei.intelligent">
+                <h3>智慧助手-今天</h3>
+                <p>关闭也占用运存</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div class="function-card" data-package="com.huawei.music">
+                <h3>华为音乐</h3>
+                <p>打开慢且占用高</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div
+                class="function-card"
+                data-package="com.huawei.ohos.famanager"
+              >
+                <h3>服务中心</h3>
+                <p>上滑的卡片中心</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div class="function-card" data-package="com.huawei.wallet">
+                <h3>华为钱包</h3>
+                <p>不用NFC建议删</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div class="function-card" data-package="com.huawei.fastapp">
+                <h3>快应用中心</h3>
+                <p>类似小程序中心</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+
+              <div class="function-card" data-package="com.huawei.health">
+                <h3>运动健康</h3>
+                <p>运动健康及插件</p>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm install-btn">
+                    装回
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 定制模式 -->
+          <section class="tab-content" id="custom">
+            <div class="section-header">
+              <h2>定制模式</h2>
+              <p>⚠️ 重要项目可能关联其它功能或有风险，根据情况慎重删减</p>
+            </div>
+            <div class="function-grid">
+              <div class="function-card" data-package="com.huawei.android.instantshare,com.huawei.pcassistant">
+                <h3>华为分享</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.browser,com.android.browser">
+                <h3>华为浏览器</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.hwid">
+                <h3>HMS Core</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.emergency">
+                <h3>紧急信息</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.gameassistant">
+                <h3>游戏空间</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.managedprovisioning">
+                <h3>工作资料设置</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.htmlviewer">
+                <h3>html查看器</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.baidu.input_huawei,com.huawei.secime">
+                <h3>百度输入法</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.privatespace">
+                <h3>隐私空间</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.motionservice">
+                <h3>悬浮球/智慧感知</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.HwMultiScreenShot">
+                <h3>滚动截屏</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.stk">
+                <h3>sim卡应用</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.android.FloatTasks">
+                <h3>悬浮导航</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.videoeditor">
+                <h3>花瓣剪辑</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.controlcenter">
+                <h3>多屏协同(控制中心)</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.example.android.notepad">
+                <h3>备忘录</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.appmarket">
+                <h3>应用商店</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.aod">
+                <h3>息屏显示</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.camera">
+                <h3>相机</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.meetime,com.huawei.hwvoipservice">
+                <h3>畅连</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.iflytek.speechsuite,com.sohu.sohuvideo.emplayer">
+                <h3>讯飞语音引擎</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.android.findmyphone">
+                <h3>查找手机</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.mms.service">
+                <h3>彩信服务</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.magazine">
+                <h3>杂志锁屏</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.localBackup">
+                <h3>备份</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.android.thememanager">
+                <h3>主题</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.hwdetectrepair">
+                <h3>智能检测</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.calculator2">
+                <h3>计算器</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.emergency">
+                <h3>个人紧急信息</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.scanner">
+                <h3>智慧视觉(扫一扫)</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.deskclock">
+                <h3>时钟</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.printservice,com.android.printspooler">
+                <h3>打印服务</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.hicar">
+                <h3>HiCar智行</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.hiai">
+                <h3>华为智慧引擎</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.hidisk,com.huawei.hicloud">
+                <h3>云空间</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.phoneservice">
+                <h3>服务/我的华为</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.himovie,com.huawei.himovie.partner1,com.huawei.himovie.partner2,com.tencent.qqlivehuawei">
+                <h3>华为视频</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.hwireader,com.huawei.hwreader.al,com.huawei.hnreader,com.huawei.hwread.al">
+                <h3>华为阅读</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.android.karaoke">
+                <h3>K歌特效</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.android.projectmenu">
+                <h3>工程菜单</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.android.carrierconfig">
+                <h3>拨号广告/5G配置</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.scenepack">
+                <h3>旅行助手</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+              <div class="function-card" data-package="com.huawei.android.totemweather">
+                <h3>天气</h3>
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm uninstall-btn">卸载</button>
+                  <button class="btn btn-success btn-sm install-btn">装回</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 监视模式 -->
+          <section class="tab-content" id="monitor">
+            <div class="section-header">
+              <h2>监视模式</h2>
+              <p>查看设备信息和应用列表</p>
+            </div>
+            <div class="monitor-controls">
+              <button class="btn btn-primary" id="getMemoryBtn">
+                查看内存情况
+              </button>
+              <button class="btn btn-primary" id="getSystemPackagesBtn">
+                查看系统软件
+              </button>
+              <button class="btn btn-primary" id="getUserPackagesBtn">
+                查看用户软件
+              </button>
+              <button class="btn btn-primary" id="getAllPackagesBtn">
+                查看所有软件
+              </button>
+            </div>
+            <div class="output-container">
+              <pre id="monitorOutput" class="output"></pre>
+            </div>
+          </section>
+
+          <!-- 动画模式 -->
+          <section class="tab-content" id="animation">
+            <div class="section-header">
+              <h2>动画模式</h2>
+              <p>自定义动画速度 (建议值：窗口1.5 / 过渡1.34 / 动画程序1.17)</p>
+            </div>
+            <div class="animation-controls">
+              <div class="input-group">
+                <label for="windowAnim">窗口动画缩放倍数：</label>
+                <input
+                  type="number"
+                  id="windowAnim"
+                  step="0.1"
+                  value="1"
+                  min="0"
+                  max="10"
+                />
+              </div>
+              <div class="input-group">
+                <label for="transitionAnim">过渡动画缩放倍数：</label>
+                <input
+                  type="number"
+                  id="transitionAnim"
+                  step="0.1"
+                  value="1"
+                  min="0"
+                  max="10"
+                />
+              </div>
+              <div class="input-group">
+                <label for="animatorAnim">动画程序缩放倍数：</label>
+                <input
+                  type="number"
+                  id="animatorAnim"
+                  step="0.1"
+                  value="1"
+                  min="0"
+                  max="10"
+                />
+              </div>
+              <button class="btn btn-primary" id="applyAnimationBtn">
+                应用设置
+              </button>
+              <button class="btn btn-secondary" id="resetAnimationBtn">
+                恢复默认
+              </button>
+            </div>
+          </section>
+
+          <!-- 功能模式 -->
+          <section class="tab-content" id="function">
+            <div class="section-header">
+              <h2>功能模式</h2>
+              <p>系统高级控制和应用安装</p>
+            </div>
+            <div class="function-grid">
+              <div class="function-card">
+                <h3>查询已连接设备</h3>
+                <button class="btn btn-primary btn-block" id="listDevicesBtn">
+                  查看设备
+                </button>
+              </div>
+              <div class="function-card">
+                <h3>查看AOSP版本号</h3>
+                <button class="btn btn-primary btn-block" id="getVersionBtn">
+                  查看版本
+                </button>
+              </div>
+              <div class="function-card full-width">
+                <h3>APK安装工具</h3>
+                <p>选择本地APK文件或文件夹进行安装</p>
+                <div class="card-actions">
+                  <button class="btn btn-success" id="installApkFileBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z" fill="currentColor"/></svg> APK文件安装
+                  </button>
+                  <button class="btn btn-primary" id="installApkFolderBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="currentColor"/></svg> 文件夹批量安装
+                  </button>
+                </div>
+              </div>
+              <div class="function-card full-width">
+                <h3>手动卸载/安装应用</h3>
+                <input
+                  type="text"
+                  class="input"
+                  id="manualPackage"
+                  placeholder="输入包名，例如：com.huawei.xxx"
+                />
+                <div class="card-actions">
+                  <button class="btn btn-danger btn-sm" id="manualUninstallBtn">
+                    卸载
+                  </button>
+                  <button class="btn btn-success btn-sm" id="manualInstallBtn">
+                    安装
+                  </button>
+                </div>
+              </div>
+
+              <div class="function-card full-width">
+                <h3>ADB 命令终端</h3>
+                <p>执行自定义 ADB 命令用于调试 (例如: devices)</p>
+                <div class="input-group-horizontal">
+                     <span class="input-prefix">adb</span>
+                     <input
+                      type="text"
+                      class="input"
+                      id="manualAdbCommand"
+                      placeholder="输入命令参数，如：shell date"
+                    />
+                    <button class="btn btn-primary" id="execAdbBtn">
+                        执行
+                    </button>
+                </div>
+                <textarea id="adbTerminalOutput" class="terminal-output" readonly placeholder="命令执行结果将显示在这里..."></textarea>
+              </div>
+            </div>
+          </section>
+
+          <!-- 帮助 -->
+          <section class="tab-content" id="help">
+            <div class="section-header">
+              <h2>帮助信息</h2>
+            </div>
+            <div class="help-content">
+              <h3>连接步骤：</h3>
+              <ol>
+                <li>开启开发者选项：设置-关于手机-连续点击版本号</li>
+                <li>打开USB调试：设置-系统和更新-开发者选项-USB调试</li>
+                <li>数据线将手机连接电脑（必须是支持数据传输的线）</li>
+                <li>拉下通知栏，将"仅充电"改为"传输文件"</li>
+                <li>弹出"是否允许USB调试"点击确定</li>
+                <li>不弹授权大概是驱动问题，安装华为（荣耀）手机助手连接</li>
+              </ol>
+
+              <h3>常见问题：</h3>
+              <ul>
+                <li>
+                  <strong>error:device not found</strong> -
+                  USB调试未连接成功，请检查连接
+                </li>
+                <li>
+                  <strong>Failure [not installed for 0]</strong> -
+                  手机未安装此包名的APP，请忽略
+                </li>
+                <li>
+                  手机ROM中本就没有的，无法通过工具装回，只能装回原本就有的app
+                </li>
+                <li>使用完毕后建议重启一次手机</li>
+              </ul>
+            </div>
+          </section>
+        </main>
+
+        <!-- 底部日志固定区域 -->
+        <footer class="log-panel">
+          <div class="log-header">
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span class="icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/></svg>
+                </span>
+                <span>操作日志</span>
+            </div>
+            <button class="btn-icon-only" id="clearLogBtn" title="清空日志">
+              <svg width="14" height="14" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <div class="log-content" id="logContent"></div>
+        </footer>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
