@@ -13,7 +13,7 @@
         AllowsTransparency="False"
         ResizeMode="CanResize">
     <shell:WindowChrome.WindowChrome>
-        <shell:WindowChrome CaptionHeight="20" 
+        <shell:WindowChrome CaptionHeight="32" 
                            ResizeBorderThickness="8" 
                            CornerRadius="0"
                            GlassFrameThickness="-1" 
@@ -22,17 +22,19 @@
     </shell:WindowChrome.WindowChrome>
     <Border Background="{x:Null}">
         <Grid>
-            <Border x:Name="SidebarTopExtension" 
-                    HorizontalAlignment="Left" 
+            <!-- Full-width top bar extension: Unified background with system title bar -->
+            <Border x:Name="TopBarExtension" 
+                    HorizontalAlignment="Stretch" 
                     VerticalAlignment="Top"
-                    Width="260" 
                     Height="32" 
-                    Background="#66FFFFFF" />
+                    Background="#66FFFFFF"
+                    BorderThickness="0" />
             
+            <!-- WebView2: Positioned below the unified header -->
             <wv2:WebView2 x:Name="webView"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
-                          Margin="2,32,2,2"/>
+                          Margin="0,32,0,0"/>
         </Grid>
     </Border>
 </Window>

@@ -91,19 +91,63 @@ namespace HarmonyOSToolbox
                 int useDarkMode = isDark ? 1 : 0;
                 DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkMode, sizeof(int));
                 
-                // Sync Sidebar Top Extension color with CSS
+                // Sync Top Bar Extension color with CSS
                 // Light: rgba(255, 255, 255, 0.4) -> #66FFFFFF
                 // Dark: rgba(0, 0, 0, 0.2) -> #33000000
-                if (SidebarTopExtension != null)
+                if (TopBarExtension != null)
                 {
-                     SidebarTopExtension.Background = new System.Windows.Media.SolidColorBrush(
+                     TopBarExtension.Background = new System.Windows.Media.SolidColorBrush(
                         (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#33000000" : "#66FFFFFF"));
                 }
+                
+                // Get Windows accent color and send to frontend
+                string accentColor = GetSystemAccentColor();
+                SendAccentColorToFrontend(accentColor);
             }
             catch
             {
                 // Windows 10 or older doesn't support Mica
             }
+        }
+        
+        private string GetSystemAccentColor()
+        {
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\DWM");
+                if (key != null)
+                {
+                    object? accentColorObj = key.GetValue("AccentColor");
+                    if (accentColorObj is int accentColorDword)
+                    {
+                        // Windows stores color as 0xAABBGGRR, convert to #RRGGBB
+                        byte r = (byte)(accentColorDword & 0xFF);
+                        byte g = (byte)((accentColorDword >> 8) & 0xFF);
+                        byte b = (byte)((accentColorDword >> 16) & 0xFF);
+                        return $"#{r:X2}{g:X2}{b:X2}";
+                    }
+                }
+            }
+            catch { }
+            return "#0067c0"; // Fallback to default blue
+        }
+        
+        private void SendAccentColorToFrontend(string color)
+        {
+            try
+            {
+                if (webView != null && webView.CoreWebView2 != null)
+                {
+                    string script = $@"
+                        if (document.documentElement) {{
+                            document.documentElement.style.setProperty('--primary-color', '{color}');
+                            console.log('[Theme] Accent color set to: {color}');
+                        }}
+                    ";
+                    webView.CoreWebView2.ExecuteScriptAsync(script);
+                }
+            }
+            catch { }
         }
 
         private bool IsSystemDarkTheme()
@@ -189,6 +233,9 @@ namespace HarmonyOSToolbox
                         ");
                         // Send initial window state
                         SendWindowState();
+                        // Send Windows accent color
+                        string accentColor = GetSystemAccentColor();
+                        SendAccentColorToFrontend(accentColor);
                     }
                 };
 

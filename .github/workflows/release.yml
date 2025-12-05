@@ -7,69 +7,75 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '版本号 (例如: v1.0.0)'
+        description: "版本号 (例如: v1.0.0)"
         required: true
-        default: 'v1.0.0'
+        default: "v1.0.0"
       release_notes:
-        description: '发布说明'
+        description: "发布说明"
         required: false
-        default: '新版本发布'
+        default: "新版本发布"
 
 jobs:
   build-and-release:
     runs-on: windows-latest
-    
+
     steps:
-    - name: 检出代码
-      uses: actions/checkout@v3
-      
-    - name: 设置 .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0.x'
-        
-    - name: 还原依赖
-      run: dotnet restore HarmonyOSToolbox.csproj
-      
-    - name: 构建项目
-      run: dotnet build HarmonyOSToolbox.csproj --configuration Release --no-restore
-      
-    - name: 发布应用 (单文件)
-      run: |
-        dotnet publish HarmonyOSToolbox.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o publish/single-file
-        
-    - name: 发布应用 (完整包含依赖)
-      run: |
-        dotnet publish HarmonyOSToolbox.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/self-contained
-        
-    - name: 创建发布包
-      run: |
-        $version = "${{ github.event.inputs.version }}"
-        Compress-Archive -Path publish/single-file/* -DestinationPath "HarmonyOSToolbox-$version-single-file.zip"
-        Compress-Archive -Path publish/self-contained/* -DestinationPath "HarmonyOSToolbox-$version-self-contained.zip"
-      shell: pwsh
-      
-    - name: 创建 Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ github.event.inputs.version }}
-        name: 鸿蒙工具箱 ${{ github.event.inputs.version }}
+      - name: 检出代码
+        uses: actions/checkout@v3
+
+      - name: 设置 .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: 还原依赖
+        run: dotnet restore HarmonyOSToolbox.csproj
+
+      - name: 构建项目
+        run: dotnet build HarmonyOSToolbox.csproj --configuration Release --no-restore
+
+      - name: 发布应用 (单文件 - 需要 .NET 9)
+        run: |
+          dotnet publish HarmonyOSToolbox.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=false -p:IncludeAllContentForSelfExtract=false -o publish/single-file
+
+      - name: 发布应用 (完整自包含版本)
+        run: |
+          dotnet publish HarmonyOSToolbox.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -o publish/self-contained
+
+      - name: 创建发布包
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          Compress-Archive -Path publish/single-file/* -DestinationPath "HarmonyOSToolbox-$version-single-file.zip"
+          Compress-Archive -Path publish/self-contained/* -DestinationPath "HarmonyOSToolbox-$version-self-contained.zip"
+        shell: pwsh
+
+      - name: 创建 Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: 鸿蒙工具箱 ${{ github.event.inputs.version }}
         body: |
           ## 📦 下载说明
-          
-          **单文件版本** (需要系统已安装 .NET 9.0 运行时):
+
+          ### **单文件版本** (约 5-10 MB，需要系统已安装 .NET 9.0 运行时)
           - `HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip`
-          
-          **完整版本** (包含所有依赖):
+          - ✅ 文件小，启动快
+          - ⚠️ **必须**先安装 [.NET 9.0 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0)
+
+          ### **完整自包含版本** (约 80-100 MB，无需安装任何依赖)
           - `HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip`
-          
+          - ✅ 开箱即用，包含完整 .NET 运行时
+          - ⚠️ 文件较大
+
+          ---
+
           ## 📝 更新内容
-          
+
           ${{ github.event.inputs.release_notes }}
-        files: |
-          HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip
-          HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip
+            HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

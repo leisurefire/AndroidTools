@@ -44,6 +44,12 @@
         "net9.0-windows10.0.18362": {
           "targetAlias": "net9.0-windows10.0.18362.0",
           "dependencies": {
+            "Microsoft.NET.ILLink.Tasks": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.11, )",
+              "autoReferenced": true
+            },
             "Microsoft.Web.WebView2": {
               "target": "Package",
               "version": "[1.0.3595.46, )"
@@ -90,6 +96,11 @@
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "win-x64": {
+          "#import": []
         }
       }
     }
