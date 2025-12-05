@@ -1,0 +1,53 @@
+<section class="tab-content active" id="function">
+  <div class="section-header">
+    <h2>主菜单</h2>
+    <p>系统高级控制和应用安装</p>
+  </div>
+  <div class="function-grid">
+    <div class="function-card full-width">
+      <h3>ADB 命令终端</h3>
+      <p>执行自定义 ADB 命令用于调试 (例如: devices)</p>
+      <div class="input-group-horizontal">
+        <span class="input-prefix">adb</span>
+        <input type="text" class="input" id="manualAdbCommand" placeholder="输入命令参数，如：shell date"/>
+        <button class="btn btn-primary" id="execAdbBtn">执行</button>
+      </div>
+      <textarea id="adbTerminalOutput" class="terminal-output" readonly placeholder="命令执行结果将显示在这里..."></textarea>
+    </div>
+    
+    <div class="function-card">
+      <h3>查询已连接设备</h3>
+      <button class="btn btn-primary btn-block" id="listDevicesBtn">查看设备</button>
+    </div>
+    <div class="function-card">
+      <h3>查看AOSP版本号</h3>
+      <button class="btn btn-primary btn-block" id="getVersionBtn">查看版本</button>
+    </div>
+    <div class="function-card">
+      <h3>查看内存情况</h3>
+      <button class="btn btn-primary btn-block" id="getMemoryBtn">查看内存</button>
+    </div>
+    
+    <div class="function-card full-width">
+      <h3>APK安装工具</h3>
+      <p>选择本地APK文件或文件夹进行安装</p>
+      <div class="card-actions">
+        <button class="btn btn-success" id="installApkFileBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z" fill="currentColor"/></svg> APK文件安装
+        </button>
+        <button class="btn btn-primary" id="installApkFolderBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="currentColor"/></svg> 文件夹批量安装
+        </button>
+      </div>
+    </div>
+    
+    <div class="function-card full-width">
+      <h3>Shizuku 授权</h3>
+      <p>通过ADB激活Shizuku服务（需设备已安装Shizuku应用）</p>
+      <button class="btn btn-success btn-block" id="shizukuAuthBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" fill="currentColor"/></svg>
+        启动 Shizuku
+      </button>
+    </div>
+  </div>
+</section>

@@ -37,18 +37,26 @@ namespace HarmonyOSToolbox
         {
             InitializeComponent();
             
-            // Apply Windows 11 Mica effect
-            Loaded += (s, e) =>
-            {
-                ApplyMicaEffect();
-                ApplyRoundedCorners();
-            };
+            // Apply Windows 11 Mica effect and set work area constraints
+            Loaded += Window_Loaded;
             
-            // Monitor window state changes to update UI
-            StateChanged += (s, e) => SendWindowState();
+            // Monitor window state changes to update UI and fix maximize behavior
+            StateChanged += Window_StateChanged;
             
             // Safe async initialization (fire-and-forget with protection)
             InitializeWebViewAsync();
+        }
+        
+        private void Window_Loaded(object? sender, RoutedEventArgs e)
+        {
+            ApplyMicaEffect();
+            ApplyRoundedCorners();
+        }
+        
+        private void Window_StateChanged(object? sender, EventArgs e)
+        {
+            // Send state to frontend
+            SendWindowState();
         }
         
         private void SendWindowState()
@@ -79,8 +87,18 @@ namespace HarmonyOSToolbox
                 DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, sizeof(int));
                 
                 // Detect system theme and apply to window frame
-                int useDarkMode = IsSystemDarkTheme() ? 1 : 0;
+                bool isDark = IsSystemDarkTheme();
+                int useDarkMode = isDark ? 1 : 0;
                 DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkMode, sizeof(int));
+                
+                // Sync Sidebar Top Extension color with CSS
+                // Light: rgba(255, 255, 255, 0.4) -> #66FFFFFF
+                // Dark: rgba(0, 0, 0, 0.2) -> #33000000
+                if (SidebarTopExtension != null)
+                {
+                     SidebarTopExtension.Background = new System.Windows.Media.SolidColorBrush(
+                        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#33000000" : "#66FFFFFF"));
+                }
             }
             catch
             {
@@ -148,10 +166,13 @@ namespace HarmonyOSToolbox
                 webView.CoreWebView2.Settings.IsNonClientRegionSupportEnabled = true;
 
                 // Set WebView2 background color (match window background)
-                webView.DefaultBackgroundColor = System.Drawing.Color.FromArgb(243, 243, 243);
+                webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
 
                 // Enable DevTools for debugging
                 webView.CoreWebView2.Settings.AreDevToolsEnabled = true;
+                
+                // Disable cache for development (comment out in production)
+                webView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
 
                 // Set WebView2 message handling
                 webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
@@ -165,20 +186,16 @@ namespace HarmonyOSToolbox
                         // Inject initialization script
                         webView.CoreWebView2.ExecuteScriptAsync(@" 
                             console.log('[WebView2] Page loaded, initializing...');
-                            // Check buttons
-                            const minBtn = document.getElementById('minBtn');
-                            const maxBtn = document.getElementById('maxBtn');
-                            const closeBtn = document.getElementById('closeBtn');
-                            console.log('Buttons:', { minBtn, maxBtn, closeBtn });
                         ");
                         // Send initial window state
                         SendWindowState();
                     }
                 };
 
-                // Load HTML page
+                // Load HTML page with cache busting
                 string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "index.html");
-                webView.CoreWebView2.Navigate(new Uri(htmlPath).AbsoluteUri);
+                string url = new Uri(htmlPath).AbsoluteUri + "?v=" + DateTime.Now.Ticks;
+                webView.CoreWebView2.Navigate(url);
             }
             catch (Exception ex)
             {
@@ -278,6 +295,9 @@ namespace HarmonyOSToolbox
                     
                     // Window Control
                     "windowControl" => HandleWindowControl(request.Data?.ToString() ?? ""),
+                    
+                    // Page Loading (fix CORS issue)
+                    "loadPage" => LoadPageContent(request.Data?.ToString() ?? ""),
 
                     _ => new { success = false, error = "Unknown action" }
                 };
@@ -314,6 +334,26 @@ namespace HarmonyOSToolbox
                 });
                 
                 return new { success = true, command = command };
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, error = ex.Message };
+            }
+        }
+        
+        private object LoadPageContent(string pageId)
+        {
+            try
+            {
+                string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "pages", $"{pageId}.html");
+                
+                if (!File.Exists(htmlPath))
+                {
+                    return new { success = false, error = $"Page not found: {pageId}" };
+                }
+                
+                string content = File.ReadAllText(htmlPath);
+                return new { success = true, content = content };
             }
             catch (Exception ex)
             {
