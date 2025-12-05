@@ -6,10 +6,15 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "版本号 (例如: v1.0.0)"
+      version_type:
+        description: "版本类型"
         required: true
-        default: "v1.0.0"
+        type: choice
+        options:
+          - patch # 1.0.0 -> 1.0.1 (bug修复)
+          - minor # 1.0.0 -> 1.1.0 (新功能)
+          - major # 1.0.0 -> 2.0.0 (重大更新)
+        default: "patch"
       release_notes:
         description: "发布说明"
         required: false
@@ -22,6 +27,51 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # 获取所有历史记录和标签
+
+      - name: 计算新版本号
+        id: version
+        run: |
+          # 获取最新的 tag
+          $latestTag = git describe --tags --abbrev=0 2>$null
+          if (-not $latestTag) {
+            $latestTag = "v0.0.0"
+          }
+
+          Write-Host "Latest tag: $latestTag"
+
+          # 解析版本号 (移除 'v' 前缀)
+          $version = $latestTag -replace '^v', ''
+          $parts = $version -split '\.'
+          $major = [int]$parts[0]
+          $minor = [int]$parts[1]
+          $patch = [int]$parts[2]
+
+          # 根据输入类型自增版本号
+          $versionType = "${{ github.event.inputs.version_type }}"
+          switch ($versionType) {
+            "major" {
+              $major++
+              $minor = 0
+              $patch = 0
+            }
+            "minor" {
+              $minor++
+              $patch = 0
+            }
+            "patch" {
+              $patch++
+            }
+          }
+
+          $newVersion = "v$major.$minor.$patch"
+          Write-Host "New version: $newVersion"
+
+          # 输出到 GitHub Actions
+          echo "new_version=$newVersion" >> $env:GITHUB_OUTPUT
+          echo "version_number=$major.$minor.$patch" >> $env:GITHUB_OUTPUT
+        shell: pwsh
 
       - name: 设置 .NET
         uses: actions/setup-dotnet@v3
@@ -44,7 +94,7 @@ jobs:
 
       - name: 创建发布包
         run: |
-          $version = "${{ github.event.inputs.version }}"
+          $version = "${{ steps.version.outputs.new_version }}"
           Compress-Archive -Path publish/single-file/* -DestinationPath "HarmonyOSToolbox-$version-single-file.zip"
           Compress-Archive -Path publish/self-contained/* -DestinationPath "HarmonyOSToolbox-$version-self-contained.zip"
         shell: pwsh
@@ -52,29 +102,29 @@ jobs:
       - name: 创建 Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          name: 鸿蒙工具箱 ${{ github.event.inputs.version }}
-        body: |
-          ## 📦 下载说明
+          tag_name: ${{ steps.version.outputs.new_version }}
+          name: 鸿蒙工具箱 ${{ steps.version.outputs.new_version }}
+          body: |
+            ## 📦 下载说明
 
-          ### **单文件版本** (约 5-10 MB，需要系统已安装 .NET 9.0 运行时)
-          - `HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip`
-          - ✅ 文件小，启动快
-          - ⚠️ **必须**先安装 [.NET 9.0 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0)
+            ### **单文件版本** (约 5-10 MB，需要系统已安装 .NET 9.0 运行时)
+            - `HarmonyOSToolbox-${{ steps.version.outputs.new_version }}-single-file.zip`
+            - ✅ 文件小，启动快
+            - ⚠️ **必须**先安装 [.NET 9.0 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0)
 
-          ### **完整自包含版本** (约 80-100 MB，无需安装任何依赖)
-          - `HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip`
-          - ✅ 开箱即用，包含完整 .NET 运行时
-          - ⚠️ 文件较大
+            ### **完整自包含版本** (约 80-100 MB，无需安装任何依赖)
+            - `HarmonyOSToolbox-${{ steps.version.outputs.new_version }}-self-contained.zip`
+            - ✅ 开箱即用，包含完整 .NET 运行时
+            - ⚠️ 文件较大
 
-          ---
+            ---
 
-          ## 📝 更新内容
+            ## 📝 更新内容
 
-          ${{ github.event.inputs.release_notes }}
+            ${{ github.event.inputs.release_notes }}
           files: |
-            HarmonyOSToolbox-${{ github.event.inputs.version }}-single-file.zip
-            HarmonyOSToolbox-${{ github.event.inputs.version }}-self-contained.zip
+            HarmonyOSToolbox-${{ steps.version.outputs.new_version }}-single-file.zip
+            HarmonyOSToolbox-${{ steps.version.outputs.new_version }}-self-contained.zip
           draft: false
           prerelease: false
         env:
