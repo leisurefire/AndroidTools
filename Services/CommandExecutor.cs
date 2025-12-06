@@ -38,7 +38,7 @@ namespace HarmonyOSToolbox.Services
             }
 
             // 2. 如果系统PATH失败，尝试tools文件夹
-            string toolPath = FindInToolsDirectory(command);
+            string? toolPath = FindInToolsDirectory(command);
             if (!string.IsNullOrEmpty(toolPath))
             {
                 result = await TryExecuteAsync(toolPath, arguments, timeout);
