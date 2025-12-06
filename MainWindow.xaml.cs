@@ -555,38 +555,87 @@ namespace HarmonyOSToolbox
 
         private async Task OpenHuaweiOAuthWindow(CommonInfo? info)
         {
-            await Dispatcher.InvokeAsync(() =>
+            await Dispatcher.InvokeAsync(async () =>
             {
                 try
                 {
-                    // 华为 OAuth 登录地址
-                    string oauthUrl = "https://oauth-login.cloud.huawei.com/oauth2/v3/authorize" +
-                        "?client_id=YOUR_CLIENT_ID" +
-                        "&response_type=code" +
-                        "&redirect_uri=YOUR_REDIRECT_URI" +
-                        "&scope=https://developer.huawei.com/consumer";
+                    Console.WriteLine("[华为认证] 开始认证流程");
                     
-                    // 使用系统默认浏览器打开
-                    var psi = new System.Diagnostics.ProcessStartInfo
+                    // 使用 HarmonyAuthServer 进行正确的认证
+                    var authServer = new HarmonyAuthServer(harmonyService!.Eco);
+                    
+                    // 订阅认证成功事件
+                    authServer.OnAuthSuccess += (sender, userInfo) =>
                     {
-                        FileName = oauthUrl,
-                        UseShellExecute = true
+                        Dispatcher.Invoke(() =>
+                        {
+                            Console.WriteLine($"[华为认证] 登录成功: {userInfo.NickName}");
+                            MessageBox.Show($"登录成功！\n用户: {userInfo.NickName}\nUserID: {userInfo.UserId}",
+                                "认证成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                            
+                            // 保存认证信息
+                            SaveAuthInfo(userInfo);
+                            
+                            // 关闭认证服务器
+                            authServer?.Stop();
+                            
+                            // 更新账号信息
+                            if (harmonyService != null)
+                            {
+                                _ = harmonyService.Build.CheckEcoAccount(info ?? new CommonInfo());
+                            }
+                        });
                     };
-                    System.Diagnostics.Process.Start(psi);
                     
-                    // TODO: 实现 OAuth 回调处理逻辑
-                    // 1. 设置本地 HTTP 服务器监听回调
-                    // 2. 获取 authorization code
-                    // 3. 交换 access token
-                    // 4. 保存到 harmonyService.Eco
+                    // 订阅认证失败事件
+                    authServer.OnAuthError += (sender, error) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            Console.WriteLine($"[华为认证] 登录失败: {error}");
+                            MessageBox.Show($"登录失败: {error}", "认证失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                            authServer?.Stop();
+                        });
+                    };
+                    
+                    // 启动认证服务器
+                    var port = await authServer.StartAsync();
+                    Console.WriteLine($"[华为认证] 认证服务器已启动在端口: {port}");
+                    
+                    // 打开浏览器进行认证
+                    authServer.OpenAuthPage();
                     
                     MessageBox.Show("请在浏览器中完成登录授权", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"打开登录窗口失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Console.WriteLine($"[华为认证] 启动失败: {ex.Message}");
+                    MessageBox.Show($"启动认证失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             });
+        }
+
+        /// <summary>
+        /// 保存认证信息到文件
+        /// </summary>
+        private void SaveAuthInfo(UserInfo userInfo)
+        {
+            try
+            {
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(userInfo);
+                string configDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config");
+                if (!Directory.Exists(configDir))
+                {
+                    Directory.CreateDirectory(configDir);
+                }
+                string filePath = Path.Combine(configDir, "ds-authInfo.json");
+                File.WriteAllText(filePath, json);
+                Console.WriteLine($"[华为认证] 认证信息已保存: {filePath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[华为认证] 保存认证信息失败: {ex.Message}");
+            }
         }
 
         private async Task<object?> SelectBigHapAsync()

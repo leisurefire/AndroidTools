@@ -117,29 +117,58 @@ namespace HarmonyOSToolbox.Services.Harmony
                     try
                     {
                         var userInfo = await _ecoService.GetTokenByTempToken(body);
-                        
-                        // 触发成功事件
-                        OnAuthSuccess?.Invoke(this, userInfo);
 
-                        // 返回成功响应
+                        // 返回成功响应（先发送响应，再触发事件）
                         var responseString = "登录成功，请返回应用";
                         var buffer = Encoding.UTF8.GetBytes(responseString);
                         response.ContentType = "text/plain; charset=utf-8";
                         response.ContentLength64 = buffer.Length;
                         response.StatusCode = 200;
+                        
+                        // 确保响应完全写入
                         await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                        await response.OutputStream.FlushAsync();
+                        
+                        // 安全关闭响应
+                        try
+                        {
+                            response.Close();
+                        }
+                        catch (Exception closeEx)
+                        {
+                            Console.WriteLine($"[华为认证服务器] 关闭响应时出错: {closeEx.Message}");
+                        }
+                        
+                        // 在响应发送后再触发成功事件，避免服务器被过早停止
+                        OnAuthSuccess?.Invoke(this, userInfo);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"[华为认证服务器] Token 换取失败: {ex.Message}");
-                        OnAuthError?.Invoke(this, ex.Message);
+                        Console.WriteLine($"[华为认证服务器] 错误堆栈: {ex.StackTrace}");
 
                         var responseString = $"认证失败: {ex.Message}";
                         var buffer = Encoding.UTF8.GetBytes(responseString);
                         response.ContentType = "text/plain; charset=utf-8";
                         response.ContentLength64 = buffer.Length;
                         response.StatusCode = 500;
+                        
+                        // 确保响应完全写入
                         await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                        await response.OutputStream.FlushAsync();
+                        
+                        // 安全关闭响应
+                        try
+                        {
+                            response.Close();
+                        }
+                        catch (Exception closeEx)
+                        {
+                            Console.WriteLine($"[华为认证服务器] 关闭响应时出错: {closeEx.Message}");
+                        }
+                        
+                        // 在响应发送后再触发错误事件
+                        OnAuthError?.Invoke(this, ex.Message);
                     }
                 }
                 else
@@ -149,15 +178,39 @@ namespace HarmonyOSToolbox.Services.Harmony
                     var responseString = "Not Found";
                     var buffer = Encoding.UTF8.GetBytes(responseString);
                     await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                    await response.OutputStream.FlushAsync();
+                    
+                    // 安全关闭响应
+                    try
+                    {
+                        response.Close();
+                    }
+                    catch (Exception closeEx)
+                    {
+                        Console.WriteLine($"[华为认证服务器] 关闭响应时出错: {closeEx.Message}");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[华为认证服务器] 处理请求失败: {ex.Message}");
-            }
-            finally
-            {
-                response.Close();
+                Console.WriteLine($"[华为认证服务器] 错误堆栈: {ex.StackTrace}");
+                
+                // 尝试安全关闭响应
+                try
+                {
+                    if (!response.OutputStream.CanWrite)
+                    {
+                        Console.WriteLine($"[华为认证服务器] 响应流已不可写");
+                        return;
+                    }
+                    response.StatusCode = 500;
+                    response.Close();
+                }
+                catch (Exception closeEx)
+                {
+                    Console.WriteLine($"[华为认证服务器] 关闭响应时出错: {closeEx.Message}");
+                }
             }
         }
 

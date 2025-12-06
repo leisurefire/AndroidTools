@@ -37,17 +37,44 @@ namespace HarmonyOSToolbox.Services.Common
                 var response = await _client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<T>(content);
-                if (result == null)
+                
+                // 打印响应内容用于调试（仅打印前200个字符）
+                var preview = content.Length > 200 ? content.Substring(0, 200) + "..." : content;
+                Console.WriteLine($"[HTTP] Response preview: {preview}");
+                
+                // 特殊处理：当返回类型是 string 时，直接返回内容，不进行 JSON 反序列化
+                // 这是因为华为 API 某些端点返回纯文本 JWT Token 而不是 JSON
+                if (typeof(T) == typeof(string))
                 {
-                    throw new InvalidOperationException("Deserialization returned null");
+                    Console.WriteLine($"[HTTP] Returning raw string response (length: {content.Length})");
+                    return (T)(object)content;
                 }
-                return result;
+                
+                // 尝试 JSON 反序列化
+                try
+                {
+                    var result = JsonSerializer.Deserialize<T>(content);
+                    if (result == null)
+                    {
+                        throw new InvalidOperationException("Deserialization returned null");
+                    }
+                    return result;
+                }
+                catch (JsonException jsonEx)
+                {
+                    Console.WriteLine($"[HTTP] JSON 反序列化失败: {jsonEx.Message}");
+                    Console.WriteLine($"[HTTP] 响应内容: {content}");
+                    throw new InvalidOperationException($"无法解析响应 JSON: {jsonEx.Message}", jsonEx);
+                }
+            }
+            catch (HttpRequestException httpEx)
+            {
+                Console.WriteLine($"[HTTP] 请求失败 ({url}): {httpEx.Message}");
+                throw;
             }
             catch (Exception ex)
             {
-                // Log error here if logger is available
-                Console.WriteLine($"HTTP Request failed: {ex.Message}");
+                Console.WriteLine($"[HTTP] 未知错误 ({url}): {ex.Message}");
                 throw;
             }
         }
