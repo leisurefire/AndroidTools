@@ -24,26 +24,67 @@ namespace HarmonyOSToolbox.Services.Harmony
             // Try load auth info
             try
             {
-                var authInfo = _core.Dh.ReadFileToObj<dynamic>("ds-authInfo.json");
-                if (authInfo != null)
+                var authInfoJson = _core.Dh.ReadFileToObj<UserInfo>("ds-authInfo.json");
+                if (authInfoJson != null)
                 {
-                    // In a real scenario we should map dynamic properties or use specific class
-                    // For now assuming keys exist if authInfo is not null
-                    // _core.Eco.OAuth2Token = ... 
-                    // But dynamic is tricky with System.Text.Json.
-                    // Let's rely on specific class later or assume re-login if fails.
+                    Console.WriteLine($"[账号检查] 发现已保存的认证信息");
+                    
+                    // 初始化 Eco 服务的认证信息
+                    _core.Eco.InitCookie(authInfoJson);
+                    
+                    // 更新账号状态 - 已登录
+                    await UpdateStep(_core.AccountInfo.Steps, "登录华为账号", true, $"已登录: {authInfoJson.NickName ?? authInfoJson.UserId}");
+                    
+                    Console.WriteLine($"[账号检查] 账号已登录: {authInfoJson.NickName ?? authInfoJson.UserId}");
+                    
+                    // 检查是否已有证书和 Profile 配置
+                    _ecoConfig = _core.Dh.ReadFileToObj<EcoConfig>("eco_config.json") ?? new EcoConfig();
+                    
+                    // 检查证书状态
+                    if (!string.IsNullOrEmpty(_ecoConfig.DebugCert?.Path) && File.Exists(_ecoConfig.DebugCert.Path))
+                    {
+                        await UpdateStep(_core.AccountInfo.Steps, "申请调试证书", true, "已申请");
+                        Console.WriteLine($"[账号检查] 调试证书已存在");
+                    }
+                    else
+                    {
+                        await UpdateStep(_core.AccountInfo.Steps, "申请调试证书", false, "需要申请");
+                    }
+                    
+                    // 检查设备注册状态（简化，实际需要调用 API 验证）
+                    if (!string.IsNullOrEmpty(commonInfo.DeviceIp))
+                    {
+                        await UpdateStep(_core.AccountInfo.Steps, "注册调试设备", true, "设备已连接");
+                    }
+                    else
+                    {
+                        await UpdateStep(_core.AccountInfo.Steps, "注册调试设备", false, "需要连接设备");
+                    }
+                    
+                    // 检查 Profile 状态
+                    if (!string.IsNullOrEmpty(_ecoConfig.DebugProfile?.Path) && File.Exists(_ecoConfig.DebugProfile.Path))
+                    {
+                        await UpdateStep(_core.AccountInfo.Steps, "申请调试Profile", true, "已申请");
+                        Console.WriteLine($"[账号检查] 调试 Profile 已存在");
+                    }
+                    else
+                    {
+                        await UpdateStep(_core.AccountInfo.Steps, "申请调试Profile", false, "需要申请");
+                    }
                 }
-                
-                // Load EcoConfig
-                _ecoConfig = _core.Dh.ReadFileToObj<EcoConfig>("eco_config.json");
-                if (_ecoConfig == null) _ecoConfig = new EcoConfig();
-
-                await UpdateStep(_core.AccountInfo.Steps, "Checking Account", true);
-                // Real check would involve calling an API to verify token
+                else
+                {
+                    Console.WriteLine($"[账号检查] 未找到已保存的认证信息");
+                    await UpdateStep(_core.AccountInfo.Steps, "登录华为账号", false, "未登录");
+                    await UpdateStep(_core.AccountInfo.Steps, "申请调试证书", false, "需要先登录");
+                    await UpdateStep(_core.AccountInfo.Steps, "注册调试设备", false, "需要先登录");
+                    await UpdateStep(_core.AccountInfo.Steps, "申请调试Profile", false, "需要先登录");
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"CheckAccount error: {ex.Message}");
+                Console.WriteLine($"[账号检查] 检查失败: {ex.Message}");
+                await UpdateStep(_core.AccountInfo.Steps, "登录华为账号", false, "检查失败");
             }
         }
 
@@ -100,13 +141,17 @@ namespace HarmonyOSToolbox.Services.Harmony
             await _core.Cmd.SendAndInstall(signConfig.OutFile, _core.CommonInfo.DeviceIp);
         }
 
-        private async Task UpdateStep(List<StepInfo> steps, string name, bool finish)
+        private async Task UpdateStep(List<StepInfo> steps, string name, bool finish, string? message = null)
         {
             var step = steps.FirstOrDefault(s => s.Name == name);
             if (step != null)
             {
                 step.Finish = finish;
                 step.Loading = !finish;
+                if (message != null)
+                {
+                    step.Message = message;
+                }
             }
             await Task.CompletedTask;
         }

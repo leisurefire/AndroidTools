@@ -15,25 +15,25 @@ namespace HarmonyOSToolbox.Services.Common
         {
             var request = new HttpRequestMessage(method, url);
 
-            if (headers != null)
-            {
-                foreach (var header in headers)
-                {
-                    if (!string.IsNullOrEmpty(header.Value))
-                    {
-                        request.Headers.TryAddWithoutValidation(header.Key, header.Value);
-                    }
-                }
-            }
-
-            if (data != null && method != HttpMethod.Get)
-            {
-                var json = JsonSerializer.Serialize(data);
-                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            }
-
             try
             {
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        if (!string.IsNullOrEmpty(header.Value))
+                        {
+                            request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                        }
+                    }
+                }
+
+                if (data != null && method != HttpMethod.Get)
+                {
+                    var json = JsonSerializer.Serialize(data);
+                    request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+                }
+
                 var response = await _client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
@@ -72,10 +72,20 @@ namespace HarmonyOSToolbox.Services.Common
                 Console.WriteLine($"[HTTP] 请求失败 ({url}): {httpEx.Message}");
                 throw;
             }
+            catch (TaskCanceledException timeoutEx)
+            {
+                Console.WriteLine($"[HTTP] 请求超时 ({url}): {timeoutEx.Message}");
+                throw new TimeoutException($"HTTP 请求超时: {url}", timeoutEx);
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"[HTTP] 未知错误 ({url}): {ex.Message}");
                 throw;
+            }
+            finally
+            {
+                // 确保释放请求资源
+                request?.Dispose();
             }
         }
 

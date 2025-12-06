@@ -1,9 +1,5 @@
 <div class="harmony-page">
-  <h2>账号检查</h2>
-  <div class="card">
-    <h3>环境检查</h3>
-    <ul class="step-list" id="envList"></ul>
-  </div>
+  <h2>账号管理</h2>
 
   <div class="card">
     <h3>账号状态</h3>
@@ -15,22 +11,29 @@
 </div>
 <script>
   (async function () {
-    try {
-      const envInfo = await harmonyApi.getEnvInfo();
-      renderSteps("envList", envInfo.steps || envInfo.Steps);
-      const accInfo = await harmonyApi.getAccountInfo();
-      renderSteps("accList", accInfo.steps || accInfo.Steps);
-    } catch (error) {
-      console.error("加载账号信息失败:", error);
+    async function loadAccountInfo() {
+      try {
+        const accInfo = await harmonyApi.getAccountInfo();
+        renderSteps("accList", accInfo.steps || accInfo.Steps);
+      } catch (error) {
+        console.error("加载账号信息失败:", error);
+      }
     }
+
+    // 初始加载
+    await loadAccountInfo();
 
     const btnLogin = document.getElementById("btnLogin");
     if (btnLogin) {
       btnLogin.addEventListener("click", async () => {
         try {
           // Call login API
-          const newInfo = await harmonyApi.loginHuawei(window.currentHapInfo || {});
-          renderSteps("accList", newInfo.steps || newInfo.Steps);
+          const newInfo = await harmonyApi.loginHuawei(
+            window.currentHapInfo || {}
+          );
+          // 重新加载账号信息以获取最新状态
+          await loadAccountInfo();
+          console.log("账号状态已更新");
         } catch (error) {
           console.error("登录失败:", error);
           alert("登录失败: " + error.message);

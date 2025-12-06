@@ -56,7 +56,7 @@ namespace HarmonyOSToolbox.Services.Harmony
             File.WriteAllText(filePath, json);
         }
 
-        public T ReadFileToObj<T>(string filename, string? basePath = null) where T : new()
+        public T? ReadFileToObj<T>(string filename, string? basePath = null) where T : class, new()
         {
             var filePath = Path.Combine(basePath ?? ConfigDir, filename);
             try
@@ -65,14 +65,14 @@ namespace HarmonyOSToolbox.Services.Harmony
                 {
                     var json = File.ReadAllText(filePath);
                     var result = JsonSerializer.Deserialize<T>(json);
-                    return result ?? new T();
+                    return result;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"ReadFileToObj error: {ex.Message}");
             }
-            return new T();
+            return null;
         }
 
         public string ReadPng(string filePath)
