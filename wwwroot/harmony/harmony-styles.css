@@ -1,36 +1,67 @@
 .harmony-page {
+    padding: 24px;
+    color: var(--text-color);
+    font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.harmony-page .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     padding: 20px;
-    color: var(--text-color, #333);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.harmony-page .card:hover {
+    box-shadow: var(--shadow-md);
+    background: var(--card-hover);
+}
+
+.harmony-page h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-color);
+}
+
+.harmony-page h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-color);
+    margin-top: 0;
+}
+
+.harmony-page h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 0;
 }
 
 .upload-area {
-    border: 2px dashed #aaa;
+    border: 2px dashed var(--border-color);
+    background: var(--input-bg);
     padding: 40px;
     text-align: center;
     cursor: pointer;
     border-radius: 8px;
     margin-bottom: 20px;
-    background-color: rgba(255,255,255,0.5);
-    transition: all 0.3s;
+    transition: all 0.2s ease;
 }
 
 .upload-area:hover {
-    background-color: rgba(0,0,0,0.05);
-    border-color: #0078d4;
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
 }
 
-.card {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-h2, h3 {
-    margin-top: 0;
+.upload-area p {
+    color: var(--text-secondary);
+    margin-bottom: 12px;
 }
 
 .step-list {
@@ -41,26 +72,39 @@ h2, h3 {
 .step-item {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
-    padding: 8px;
-    border-radius: 4px;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: var(--hover-bg);
+    transition: background 0.2s;
+}
+
+.step-item:hover {
+    background: var(--active-bg);
 }
 
 .step-status {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    margin-right: 10px;
-    background: #ccc;
+    margin-right: 12px;
+    flex-shrink: 0;
+    background: var(--text-secondary);
 }
 
 .step-status.finish {
-    background: #4caf50;
+    background: var(--success-color);
+    box-shadow: 0 0 8px var(--success-color);
+}
+
+.step-status.error {
+    background: var(--danger-color);
+    box-shadow: 0 0 8px var(--danger-color);
 }
 
 .step-status.loading {
-    background: #2196f3;
-    animation: pulse 1s infinite;
+    background: var(--primary-color);
+    animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
@@ -69,43 +113,66 @@ h2, h3 {
     100% { opacity: 1; transform: scale(1); }
 }
 
-.btn {
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
+.info-row {
+    display: flex;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
 }
 
-.btn-primary {
-    background-color: #0078d4;
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    width: 120px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.info-value {
+    color: var(--text-color);
+    word-break: break-all;
+    font-family: "Cascadia Code", Consolas, monospace;
+}
+
+/* Reuse buttons from main styles.css but ensure they work here */
+.harmony-page .btn {
+    padding: 6px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.1s;
+}
+
+.harmony-page .btn:hover {
+    background: var(--hover-bg);
+}
+
+.harmony-page .btn-primary {
+    background: var(--primary-color);
     color: white;
     border: none;
 }
 
-.btn-primary:hover {
-    background-color: #0063b1;
-}
-
-.info-row {
-    display: flex;
-    margin-bottom: 5px;
-}
-
-.info-label {
-    width: 100px;
-    font-weight: bold;
-    color: #666;
+.harmony-page .btn-primary:hover {
+    filter: brightness(1.1);
+    background: var(--primary-color); /* Override generic hover */
 }
 
 .log-area {
-    background: #1e1e1e;
+    background: #1e1e1e; /* Always dark for terminal look */
     color: #d4d4d4;
-    font-family: monospace;
-    padding: 10px;
-    border-radius: 4px;
+    font-family: "Cascadia Code", Consolas, monospace;
+    padding: 12px;
+    border-radius: 6px;
     height: 200px;
     overflow-y: auto;
     white-space: pre-wrap;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
 }

@@ -1,51 +1,72 @@
 <div class="harmony-page">
-    <h2>账号检查</h2>
-    <div class="card">
-        <h3>环境检查</h3>
-        <ul class="step-list" id="envList"></ul>
-    </div>
-    
-    <div class="card">
-        <h3>账号状态</h3>
-        <ul class="step-list" id="accList"></ul>
-        <button class="btn" id="btnLogin">登录华为账号</button>
-    </div>
-    
-    <button class="btn btn-primary" id="btnNextAcc">下一步</button>
+  <h2>账号检查</h2>
+  <div class="card">
+    <h3>环境检查</h3>
+    <ul class="step-list" id="envList"></ul>
+  </div>
+
+  <div class="card">
+    <h3>账号状态</h3>
+    <ul class="step-list" id="accList"></ul>
+    <button class="btn" id="btnLogin">登录华为账号</button>
+  </div>
+
+  <button class="btn btn-primary" id="btnNextAcc">下一步</button>
 </div>
 <script>
-    (async function() {
-        const envInfo = await harmonyApi.getEnvInfo();
-        renderSteps('envList', envInfo.steps || envInfo.Steps);
-        
-        const accInfo = await harmonyApi.getAccountInfo();
-        renderSteps('accList', accInfo.steps || accInfo.Steps);
-        
-        document.getElementById('btnLogin').addEventListener('click', async () => {
-             // For now trigger check
-             if (window.currentHapInfo) {
-                 const newInfo = await harmonyApi.checkAccount(window.currentHapInfo);
-                 renderSteps('accList', newInfo.steps || newInfo.Steps);
-             }
-        });
-        
-        document.getElementById('btnNextAcc').addEventListener('click', () => {
-            window.app.navigate('harmony-build');
-        });
-        
-        function renderSteps(id, steps) {
-            const ul = document.getElementById(id);
-            ul.innerHTML = '';
-            if(!steps) return;
-            steps.forEach(step => {
-                const li = document.createElement('li');
-                li.className = 'step-item';
-                li.innerHTML = `
-                    <div class="step-status ${step.Finish || step.finish ? 'finish' : (step.Loading || step.loading ? 'loading' : '')}"></div>
-                    <span>${step.Name || step.name}: ${step.Message || step.message || ''}</span>
-                `;
-                ul.appendChild(li);
-            });
+  (async function () {
+    try {
+      const envInfo = await harmonyApi.getEnvInfo();
+      renderSteps("envList", envInfo.steps || envInfo.Steps);
+      const accInfo = await harmonyApi.getAccountInfo();
+      renderSteps("accList", accInfo.steps || accInfo.Steps);
+    } catch (error) {
+      console.error("加载账号信息失败:", error);
+    }
+
+    const btnLogin = document.getElementById("btnLogin");
+    if (btnLogin) {
+      btnLogin.addEventListener("click", async () => {
+        try {
+          // Call login API
+          const newInfo = await harmonyApi.loginHuawei(window.currentHapInfo || {});
+          renderSteps("accList", newInfo.steps || newInfo.Steps);
+        } catch (error) {
+          console.error("登录失败:", error);
+          alert("登录失败: " + error.message);
         }
-    })();
+      });
+    }
+
+    const btnNextAcc = document.getElementById("btnNextAcc");
+    if (btnNextAcc) {
+      btnNextAcc.addEventListener("click", () => {
+        window.app.navigate("harmony-build");
+      });
+    }
+
+    function renderSteps(id, steps) {
+      const ul = document.getElementById(id);
+      if (!ul) return;
+      ul.innerHTML = "";
+      if (!steps) return;
+      steps.forEach((step) => {
+        const li = document.createElement("li");
+        li.className = "step-item";
+        li.innerHTML = `
+                    <div class="step-status ${
+                      step.Finish || step.finish
+                        ? "finish"
+                        : step.Loading || step.loading
+                        ? "loading"
+                        : ""
+                    }"></div>
+                    <span>${step.Name || step.name}: ${
+          step.Message || step.message || ""
+        }</span>
+                `;
+        ul.appendChild(li);
+      });
+    }
+  })();
 </script>

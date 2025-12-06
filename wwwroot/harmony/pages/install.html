@@ -1,0 +1,187 @@
+<div class="harmony-page">
+  <h2>应用安装</h2>
+
+  <!-- 上传HAP -->
+  <div class="card">
+    <h3>上传应用包</h3>
+    <div class="upload-area" id="dropZone">
+      <p>拖拽 .hap / .app / .hsp 文件到此处</p>
+      <p>或</p>
+      <button class="btn" id="btnSelectFile">选择文件</button>
+      <input
+        type="file"
+        id="fileInput"
+        style="display: none"
+        accept=".hap,.app,.hsp"
+      />
+    </div>
+
+    <div class="card" id="fileInfo" style="display: none; margin-top: 10px">
+      <h4>文件信息</h4>
+      <div class="info-row">
+        <span class="info-label">应用名称:</span> <span id="appName">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">包名:</span> <span id="pkgName">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">版本:</span> <span id="version">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 构建安装 -->
+  <div class="card" id="buildSection" style="display: none">
+    <h3>构建安装</h3>
+    <ul class="step-list" id="buildList"></ul>
+    <button class="btn btn-primary" id="btnStart">开始构建安装</button>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const buildSection = document.getElementById("buildSection");
+    const btnSelectFile = document.getElementById("btnSelectFile");
+
+    if (dropZone) {
+      dropZone.addEventListener("click", (e) => {
+        if (e.target.id !== "btnSelectFile" && fileInput) {
+          fileInput.click();
+        }
+      });
+
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = "#0078d4";
+      });
+
+      dropZone.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = "#aaa";
+      });
+
+      dropZone.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = "#aaa";
+        if (e.dataTransfer.files.length > 0) {
+          try {
+            const res = await harmonyApi.uploadHap(e.dataTransfer.files[0]);
+            showFileInfo(res);
+          } catch (error) {
+            console.error("上传HAP失败:", error);
+            alert("上传失败: " + error.message);
+          }
+        }
+      });
+    }
+
+    if (btnSelectFile) {
+      btnSelectFile.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        try {
+          const res = await harmonyApi.openBigHap();
+          if (res) {
+            showFileInfo(res);
+          }
+        } catch (error) {
+          console.error("选择文件失败:", error);
+          alert("选择文件失败: " + error.message);
+        }
+      });
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener("change", async (e) => {
+        if (e.target.files.length > 0) {
+          try {
+            const res = await harmonyApi.uploadHap(e.target.files[0]);
+            showFileInfo(res);
+          } catch (error) {
+            console.error("上传HAP失败:", error);
+            alert("上传失败: " + error.message);
+          }
+        }
+      });
+    }
+
+    async function showFileInfo(info) {
+      if (!info) return;
+      const fileInfoElement = document.getElementById("fileInfo");
+      const appNameElement = document.getElementById("appName");
+      const pkgNameElement = document.getElementById("pkgName");
+      const versionElement = document.getElementById("version");
+
+      if (fileInfoElement) fileInfoElement.style.display = "block";
+      if (appNameElement)
+        appNameElement.textContent = info.appName || "Unknown";
+      if (pkgNameElement)
+        pkgNameElement.textContent = info.packageName || "Unknown";
+      if (versionElement)
+        versionElement.textContent = info.versionName || "Unknown";
+
+      window.currentHapInfo = info;
+
+      if (buildSection) {
+        buildSection.style.display = "block";
+        try {
+          const buildInfo = await harmonyApi.getBuildInfo();
+          renderSteps("buildList", buildInfo.steps || buildInfo.Steps);
+        } catch (error) {
+          console.error("获取构建信息失败:", error);
+        }
+      }
+    }
+
+    const btnStart = document.getElementById("btnStart");
+    if (btnStart) {
+      btnStart.addEventListener("click", async () => {
+        if (!window.currentHapInfo) {
+          alert("请先上传HAP文件");
+          return;
+        }
+
+        try {
+          btnStart.disabled = true;
+          btnStart.textContent = "构建中...";
+          const newInfo = await harmonyApi.startBuild(window.currentHapInfo);
+          renderSteps("buildList", newInfo.steps || newInfo.Steps);
+          alert("构建安装完成！");
+        } catch (e) {
+          alert("构建失败: " + e.message);
+          console.error("构建失败:", e);
+        } finally {
+          btnStart.disabled = false;
+          btnStart.textContent = "开始构建安装";
+        }
+      });
+    }
+
+    function renderSteps(id, steps) {
+      const ul = document.getElementById(id);
+      if (!ul) return;
+      ul.innerHTML = "";
+      if (!steps) return;
+      steps.forEach((step) => {
+        const li = document.createElement("li");
+        li.className = "step-item";
+        li.innerHTML = `
+                <div class="step-status ${
+                  step.Finish || step.finish
+                    ? "finish"
+                    : step.Loading || step.loading
+                    ? "loading"
+                    : ""
+                }"></div>
+                <span>${step.Name || step.name}${
+          step.Message || step.message
+            ? ": " + (step.Message || step.message)
+            : ""
+        }</span>
+            `;
+        ul.appendChild(li);
+      });
+    }
+  })();
+</script>

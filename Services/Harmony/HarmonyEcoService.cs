@@ -14,18 +14,18 @@ namespace HarmonyOSToolbox.Services.Harmony
         private readonly HttpClientService _http;
         // private readonly HarmonyCoreService _core; 
 
-        public string OAuth2Token { get; set; }
-        public string TeamId { get; set; }
-        public string UserId { get; set; }
-        public string NickName { get; set; }
+        public string OAuth2Token { get; set; } = string.Empty;
+        public string TeamId { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public string NickName { get; set; } = string.Empty;
 
         public HarmonyEcoService() // Removed core dependency for now to avoid circular issues if not strictly needed in constructor
         {
             _http = new HttpClientService();
         }
 
-        private async Task<T> BaseRequest<T>(string url, object data = null,
-            HttpMethod method = null, Dictionary<string, string> headers = null)
+        private async Task<T> BaseRequest<T>(string url, object? data = null,
+            HttpMethod? method = null, Dictionary<string, string>? headers = null)
         {
             method ??= HttpMethod.Post;
             var h = new Dictionary<string, string>
@@ -77,7 +77,7 @@ namespace HarmonyOSToolbox.Services.Harmony
                 });
         }
 
-        public async Task<string> DownloadObj(string url)
+        public async Task<string?> DownloadObj(string url)
         {
              var res = await BaseRequest<DownloadUrlResponse>(
                  "https://connect-api.cloud.huawei.com/api/amis/app-manage/v1/objects/url/reapply",
@@ -112,45 +112,45 @@ namespace HarmonyOSToolbox.Services.Harmony
     public class CertListResponse
     {
         [JsonPropertyName("data")]
-        public List<CertInfo> Data { get; set; }
+        public List<CertInfo> Data { get; set; } = new();
     }
 
     public class CreateCertResponse
     {
         [JsonPropertyName("data")]
-        public CertInfo Data { get; set; }
+        public CertInfo Data { get; set; } = new();
     }
 
     public class DeviceListResponse
     {
         [JsonPropertyName("data")]
-        public DeviceListData Data { get; set; }
+        public DeviceListData Data { get; set; } = new();
     }
     
     public class DeviceListData
     {
          [JsonPropertyName("list")]
-         public List<DeviceInfo> List { get; set; }
+         public List<DeviceInfo> List { get; set; } = new();
     }
     
     public class DeviceInfo
     {
         [JsonPropertyName("deviceId")]
-        public string DeviceId { get; set; }
+        public string DeviceId { get; set; } = string.Empty;
         
         [JsonPropertyName("udid")]
-        public string Udid { get; set; }
+        public string Udid { get; set; } = string.Empty;
     }
 
     public class CreateProfileResponse
     {
         [JsonPropertyName("data")]
-        public ProfileInfo Data { get; set; }
+        public ProfileInfo Data { get; set; } = new();
     }
 
     public class DownloadUrlResponse
     {
          [JsonPropertyName("url")]
-         public string Url { get; set; }
+         public string Url { get; set; } = string.Empty;
     }
 }

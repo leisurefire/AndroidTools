@@ -12,12 +12,12 @@ namespace HarmonyOSToolbox.Services.Harmony
 {
     public class HarmonyCmdService
     {
-        private string JavaHome { get; set; }
-        private string SdkHome { get; set; }
-        private string Hdc { get; set; }
-        private string SignJar { get; set; }
-        private string UnpackJar { get; set; }
-        private string PackJar { get; set; }
+        private string JavaHome { get; set; } = string.Empty;
+        private string SdkHome { get; set; } = string.Empty;
+        private string Hdc { get; set; } = string.Empty;
+        private string SignJar { get; set; } = string.Empty;
+        private string UnpackJar { get; set; } = string.Empty;
+        private string PackJar { get; set; } = string.Empty;
 
         public HarmonyCmdService()
         {
@@ -30,7 +30,35 @@ namespace HarmonyOSToolbox.Services.Harmony
             PackJar = Path.Combine(SdkHome, "lib", "app_packing_tool.jar");
         }
 
-        public async Task<string> ExeCmd(string cmd, string workDir = null)
+        public async Task<Dictionary<string, string>> CheckTools()
+        {
+            var tools = new Dictionary<string, string>();
+            
+            // Check Java
+            var javaPath = Path.Combine(JavaHome, "bin", "java.exe");
+            tools["Java"] = File.Exists(javaPath) ? javaPath : "";
+            
+            // Check HDC
+            tools["HDC"] = File.Exists(Hdc) ? Hdc : "";
+            
+            // Check Node (assume in path or tools)
+            try {
+                var nodeVer = await ExeCmd("node -v");
+                tools["Node"] = !string.IsNullOrEmpty(nodeVer) ? "System Path" : "";
+            } catch {
+                tools["Node"] = "";
+            }
+            
+            // Check OHPM
+            var ohpmPath = Path.Combine(SdkHome, "ohpm", "bin", "ohpm.bat"); // Windows
+            if (!File.Exists(ohpmPath)) ohpmPath = Path.Combine(SdkHome, "ohpm", "bin", "ohpm");
+            
+            tools["OHPM"] = File.Exists(ohpmPath) ? ohpmPath : "";
+
+            return tools;
+        }
+
+        public async Task<string> ExeCmd(string cmd, string? workDir = null)
         {
             var process = new Process
             {
@@ -143,7 +171,7 @@ namespace HarmonyOSToolbox.Services.Harmony
                 throw new Exception($"安装失败: {result}");
         }
         
-        public ModuleJson LoadModuleJson(string hapPath)
+        public ModuleJson? LoadModuleJson(string hapPath)
         {
             using var archive = ZipFile.OpenRead(hapPath);
             var entry = archive.GetEntry("module.json");

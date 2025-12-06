@@ -10,7 +10,7 @@ namespace HarmonyOSToolbox.Services.Harmony
     public class HarmonyBuildService
     {
         private readonly HarmonyCoreService _core;
-        private EcoConfig _ecoConfig;
+        private EcoConfig _ecoConfig = new();
 
         public HarmonyBuildService(HarmonyCoreService core)
         {
@@ -81,10 +81,10 @@ namespace HarmonyOSToolbox.Services.Harmony
             var signConfig = new SignConfig
             {
                 KeystoreFile = Path.Combine(_core.Dh.ConfigDir, _ecoConfig.Keystore ?? "xiaobai.p12"),
-                KeystorePwd = _ecoConfig.Storepass,
-                KeyAlias = _ecoConfig.KeyAlias,
-                CertFile = _ecoConfig.DebugCert?.Path,
-                ProfileFile = _ecoConfig.DebugProfile?.Path,
+                KeystorePwd = _ecoConfig.Storepass ?? "xiaobai123",
+                KeyAlias = _ecoConfig.KeyAlias ?? "xiaobai",
+                CertFile = _ecoConfig.DebugCert?.Path ?? string.Empty,
+                ProfileFile = _ecoConfig.DebugProfile?.Path ?? string.Empty,
                 InFile = _core.CommonInfo.HapPath,
                 OutFile = Path.Combine(_core.Dh.SignedDir, "signed.hap")
             };

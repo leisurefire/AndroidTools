@@ -250,7 +250,6 @@ namespace HarmonyOSToolbox
 
             var packages = packageName.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             var results = new System.Collections.Generic.List<string>();
-            bool allSuccess = true;
 
             foreach (var pkg in packages)
             {

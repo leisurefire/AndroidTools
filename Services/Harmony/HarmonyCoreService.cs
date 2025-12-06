@@ -57,7 +57,7 @@ namespace HarmonyOSToolbox.Services.Harmony
              var filePath = Path.Combine(Dh.HapDir, fileName);
              await File.WriteAllBytesAsync(filePath, buffer);
              
-             ModuleJson moduleJson = null;
+             ModuleJson? moduleJson = null;
              try {
                 moduleJson = Cmd.LoadModuleJson(filePath);
              } catch (Exception ex) {
@@ -86,7 +86,42 @@ namespace HarmonyOSToolbox.Services.Harmony
             return new List<string> { "master", "main" };
         }
 
-        public EnvInfo GetEnvInfo() => EnvInfo;
+        public async Task<EnvInfo> GetEnvInfo()
+        {
+            var tools = await Cmd.CheckTools();
+            
+            EnvInfo.ToolPaths = tools;
+            EnvInfo.Steps = new List<StepInfo>
+            {
+                new StepInfo 
+                { 
+                    Name = "检查Node环境", 
+                    Finish = !string.IsNullOrEmpty(tools.GetValueOrDefault("Node")), 
+                    Message = !string.IsNullOrEmpty(tools.GetValueOrDefault("Node")) ? "已安装" : "未找到Node.js" 
+                },
+                new StepInfo 
+                { 
+                    Name = "检查Java环境", 
+                    Finish = !string.IsNullOrEmpty(tools.GetValueOrDefault("Java")), 
+                    Message = !string.IsNullOrEmpty(tools.GetValueOrDefault("Java")) ? "已安装" : "未找到JBR" 
+                },
+                new StepInfo 
+                { 
+                    Name = "检查HDC工具", 
+                    Finish = !string.IsNullOrEmpty(tools.GetValueOrDefault("HDC")), 
+                    Message = !string.IsNullOrEmpty(tools.GetValueOrDefault("HDC")) ? "已安装" : "未找到HDC" 
+                },
+                new StepInfo 
+                { 
+                    Name = "检查OHPM", 
+                    Finish = !string.IsNullOrEmpty(tools.GetValueOrDefault("OHPM")), 
+                    Message = !string.IsNullOrEmpty(tools.GetValueOrDefault("OHPM")) ? "已安装" : "未找到OHPM" 
+                }
+            };
+
+            return EnvInfo;
+        }
+
         public AccountInfo GetAccountInfo() => AccountInfo;
         public BuildInfo GetBuildInfo() => BuildInfo;
     }

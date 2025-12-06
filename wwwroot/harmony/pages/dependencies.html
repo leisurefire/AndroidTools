@@ -1,0 +1,110 @@
+<div class="harmony-page">
+  <h2>依赖管理</h2>
+
+  <div class="card">
+    <h3>环境检测</h3>
+    <ul class="step-list" id="envList"></ul>
+    <button class="btn btn-secondary" id="btnRefresh" style="margin-top: 10px">
+      刷新检测
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>工具路径</h3>
+    <div id="toolPaths"></div>
+  </div>
+
+  <div class="card">
+    <h3>说明</h3>
+    <p style="color: #666; line-height: 1.6">
+      • 系统将检测 PATH 环境变量中是否包含必需的命令行工具<br />
+      • 同时检测 tools 目录下是否存在本地工具文件<br />
+      • 绿色 ✓ 表示已安装，红色 ✗ 表示未找到
+    </p>
+  </div>
+</div>
+
+<script>
+  (async function () {
+    async function loadEnvInfo() {
+      try {
+        const envInfo = await harmonyApi.getEnvInfo();
+        // Handle potential case differences in JSON serialization
+        const steps = envInfo.steps || envInfo.Steps;
+        const tools = envInfo.toolPaths || envInfo.ToolPaths;
+        
+        renderSteps("envList", steps);
+        renderToolPaths(tools);
+      } catch (error) {
+        console.error("加载环境信息失败:", error);
+        const container = document.getElementById("toolPaths");
+        if(container) container.innerHTML = `<div style="color: var(--danger-color)">加载失败: ${error.message}</div>`;
+      }
+    }
+
+    function renderSteps(id, steps) {
+      const ul = document.getElementById(id);
+      if (!ul) return;
+      ul.innerHTML = "";
+      if (!steps) return;
+      steps.forEach((step) => {
+        const li = document.createElement("li");
+        li.className = "step-item";
+        const status = step.Finish || step.finish ? "finish" : "error";
+        li.innerHTML = `
+                <div class="step-status ${status}"></div>
+                <span>${step.Name || step.name}${
+          step.Message || step.message
+            ? ": " + (step.Message || step.message)
+            : ""
+        }</span>
+            `;
+        ul.appendChild(li);
+      });
+    }
+
+    function renderToolPaths(paths) {
+      const container = document.getElementById("toolPaths");
+      if (!container) return;
+      container.innerHTML = "";
+      
+      if (!paths || Object.keys(paths).length === 0) {
+        container.innerHTML = '<div style="color: var(--text-secondary); padding: 10px;">暂无工具路径信息，请点击刷新检测。</div>';
+        return;
+      }
+
+      Object.entries(paths).forEach(([tool, path]) => {
+        const div = document.createElement("div");
+        div.className = "info-row";
+        
+        // Ensure path is visible against dark background
+        const pathDisplay = path ? path : "未找到";
+        const pathColor = path ? "var(--text-color)" : "var(--danger-color)";
+        
+        div.innerHTML = `
+                <span class="info-label">${tool}</span>
+                <span class="info-value" style="color: ${pathColor}">${pathDisplay}</span>
+            `;
+        container.appendChild(div);
+      });
+    }
+
+    await loadEnvInfo();
+
+    const btnRefresh = document.getElementById("btnRefresh");
+    if (btnRefresh) {
+      btnRefresh.addEventListener("click", async () => {
+        btnRefresh.disabled = true;
+        btnRefresh.textContent = "检测中...";
+        try {
+          await loadEnvInfo();
+        } catch (error) {
+          console.error("刷新失败:", error);
+        } finally {
+          btnRefresh.disabled = false;
+          btnRefresh.textContent = "刷新检测";
+        }
+      });
+    }
+  })();
+</script>

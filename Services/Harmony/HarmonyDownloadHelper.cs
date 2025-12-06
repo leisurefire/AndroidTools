@@ -49,14 +49,14 @@ namespace HarmonyOSToolbox.Services.Harmony
             }
         }
 
-        public void WriteObjToFile(string filename, object obj, string basePath = null)
+        public void WriteObjToFile(string filename, object obj, string? basePath = null)
         {
             var filePath = Path.Combine(basePath ?? ConfigDir, filename);
             var json = JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(filePath, json);
         }
 
-        public T ReadFileToObj<T>(string filename, string basePath = null) where T : new()
+        public T ReadFileToObj<T>(string filename, string? basePath = null) where T : new()
         {
             var filePath = Path.Combine(basePath ?? ConfigDir, filename);
             try
@@ -64,7 +64,8 @@ namespace HarmonyOSToolbox.Services.Harmony
                 if (File.Exists(filePath))
                 {
                     var json = File.ReadAllText(filePath);
-                    return JsonSerializer.Deserialize<T>(json);
+                    var result = JsonSerializer.Deserialize<T>(json);
+                    return result ?? new T();
                 }
             }
             catch (Exception ex)

@@ -11,7 +11,7 @@ namespace HarmonyOSToolbox.Services.Common
     {
         private static readonly HttpClient _client = new HttpClient();
 
-        public async Task<T> SendAsync<T>(string url, HttpMethod method, object data = null, Dictionary<string, string> headers = null)
+        public async Task<T> SendAsync<T>(string url, HttpMethod method, object? data = null, Dictionary<string, string>? headers = null)
         {
             var request = new HttpRequestMessage(method, url);
 
@@ -37,7 +37,12 @@ namespace HarmonyOSToolbox.Services.Common
                 var response = await _client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<T>(content);
+                var result = JsonSerializer.Deserialize<T>(content);
+                if (result == null)
+                {
+                    throw new InvalidOperationException("Deserialization returned null");
+                }
+                return result;
             }
             catch (Exception ex)
             {

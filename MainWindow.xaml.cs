@@ -54,8 +54,76 @@ namespace HarmonyOSToolbox
         {
             ApplyMicaEffect();
             ApplyRoundedCorners();
+            
+            // Listen for system theme changes
+            var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+            source?.AddHook(WndProc);
         }
-        
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WM_SETTINGCHANGE = 0x001A;
+            if (msg == WM_SETTINGCHANGE)
+            {
+                 // Schedule UI update on dispatcher to allow registry to propagate
+                 Dispatcher.InvokeAsync(async () => 
+                 {
+                     await Task.Delay(200);
+                     ApplyMicaEffect();
+                     UpdateFrontendTheme();
+                 });
+            }
+            return IntPtr.Zero;
+        }
+
+        private void UpdateFrontendTheme()
+        {
+            if (webView != null && webView.CoreWebView2 != null)
+            {
+                bool isDark = IsSystemDarkTheme();
+                string themeMode = isDark ? "dark" : "light";
+                
+                // We set the attribute on documentElement to force the CSS variables to update
+                string themeScript = $@"
+                    document.documentElement.setAttribute('data-theme', '{themeMode}');
+                    console.log('[Theme] System changed, updated to: {themeMode}');
+                ";
+                webView.CoreWebView2.ExecuteScriptAsync(themeScript);
+                
+                // Update accent color too
+                string accentColor = GetSystemAccentColor();
+                SendAccentColorToFrontend(accentColor);
+            }
+        }
+
+        private bool IsSystemDarkTheme()
+        {
+            try
+            {
+                // 1. Check AppsUseLightTheme (for apps)
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+                if (key != null)
+                {
+                    object? val = key.GetValue("AppsUseLightTheme");
+                    if (val is int i)
+                    {
+                        return i == 0;
+                    }
+                    
+                    // 2. Fallback to SystemUsesLightTheme (for system taskbar/start menu)
+                    object? valSys = key.GetValue("SystemUsesLightTheme");
+                    if (valSys is int j)
+                    {
+                        return j == 0;
+                    }
+                }
+            }
+            catch { }
+            
+            // Default to light if detection fails, or check high contrast if needed
+            return false;
+        }
+
         private void Window_StateChanged(object? sender, EventArgs e)
         {
             // Send state to frontend
@@ -95,17 +163,18 @@ namespace HarmonyOSToolbox
                 DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkMode, sizeof(int));
                 
                 // Sync Top Bar Extension color with CSS
-                // Light: rgba(255, 255, 255, 0.4) -> #66FFFFFF
-                // Dark: rgba(0, 0, 0, 0.2) -> #33000000
+                // Light: rgba(255, 255, 255, 0.4) -> #66FFFFFF (matches --sidebar-bg light)
+                // Dark: rgba(32, 32, 32, 0.6) -> #99202020 (matches --sidebar-bg dark)
                 if (TopBarExtension != null)
                 {
+                    // Convert rgba(32, 32, 32, 0.6) to ARGB: 0.6 * 255 = 153 (0x99)
+                    // Color: #99202020
                      TopBarExtension.Background = new System.Windows.Media.SolidColorBrush(
-                        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#33000000" : "#66FFFFFF"));
+                        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#99202020" : "#66FFFFFF"));
                 }
                 
-                // Get Windows accent color and send to frontend
-                string accentColor = GetSystemAccentColor();
-                SendAccentColorToFrontend(accentColor);
+                // Force theme on frontend
+                UpdateFrontendTheme();
             }
             catch
             {
@@ -153,24 +222,6 @@ namespace HarmonyOSToolbox
             catch { }
         }
 
-        private bool IsSystemDarkTheme()
-        {
-            try
-            {
-                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
-                if (key != null)
-                {
-                    object? val = key.GetValue("AppsUseLightTheme");
-                    if (val is int i)
-                    {
-                        return i == 0;
-                    }
-                }
-            }
-            catch { }
-            return false;
-        }
-
         private void ApplyRoundedCorners()
         {
             try
@@ -196,19 +247,35 @@ namespace HarmonyOSToolbox
         {
             try
             {
-                // Initialize ADB Manager directly (assumes 'adb' is in PATH)
+                // Initialize services
                 try
                 {
-                    adbManager = new AdbManager();
+                    // Harmony Service (Independent of ADB)
                     harmonyService = new HarmonyCoreService();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"ADB/Harmony Initialization Warning: {ex.Message}", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"Harmony Service Init Failed: {ex.Message}");
+                }
+
+                try
+                {
+                    // ADB Manager (Might fail if tools are missing)
+                    adbManager = new AdbManager();
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't show intrusive messagebox every time, or show warning once
+                    System.Diagnostics.Debug.WriteLine($"ADB Init Warning: {ex.Message}");
                 }
 
                 // Wait for WebView2 initialization
                 await webView.EnsureCoreWebView2Async(null);
+
+                // Set PreferredColorScheme to Auto (follows system)
+                try {
+                    webView.CoreWebView2.Profile.PreferredColorScheme = CoreWebView2PreferredColorScheme.Auto;
+                } catch { /* Ignore if not supported */ }
 
                 // Enable non-client region support (allows CSS drag)
                 webView.CoreWebView2.Settings.IsNonClientRegionSupportEnabled = true;
@@ -240,6 +307,8 @@ namespace HarmonyOSToolbox
                         // Send Windows accent color
                         string accentColor = GetSystemAccentColor();
                         SendAccentColorToFrontend(accentColor);
+                        // Apply initial theme
+                        UpdateFrontendTheme();
                     }
                 };
 
@@ -283,10 +352,16 @@ namespace HarmonyOSToolbox
                 
                  _ = webView.CoreWebView2.ExecuteScriptAsync($"console.log('[C#] Action: {request.Action}')");
 
-                // Check ADB Manager initialization
-                if (adbManager == null && request.Action != "windowControl")
+                // Identify actions that don't require ADB
+                bool isSafeAction = request.Action == "windowControl" || 
+                                    request.Action == "loadPage" || 
+                                    request.Action.StartsWith("harmony_") ||
+                                    request.Action == "getAdbVersion";
+
+                // Check ADB Manager initialization for ADB-dependent actions
+                if (adbManager == null && !isSafeAction)
                 {
-                    var errorResult = new { success = false, error = "ADB tool not initialized" };
+                    var errorResult = new { success = false, error = "ADB tool not initialized. Please check environment." };
                     SendResponse(request.RequestId, errorResult);
                     return;
                 }
@@ -294,7 +369,7 @@ namespace HarmonyOSToolbox
                 object? result = request.Action switch
                 {
                     // Basic Features
-                    "checkDevice" => await adbManager!.CheckDeviceAsync(),
+                    "checkDevice" => adbManager != null ? await adbManager.CheckDeviceAsync() : new { connected = false, deviceCount = 0, message = "ADB not initialized" },
                     "uninstallApp" => await adbManager!.UninstallAppAsync(request.Data?.ToString() ?? ""),
                     "installApp" => await adbManager!.InstallAppAsync(request.Data?.ToString() ?? ""),
                     "installApkFile" => await SelectAndInstallApkAsync(),
@@ -436,7 +511,7 @@ namespace HarmonyOSToolbox
             switch (request.Action)
             {
                 case "harmony_getEnvInfo":
-                    return harmonyService.GetEnvInfo();
+                    return await harmonyService.GetEnvInfo();
                     
                 case "harmony_getAccountInfo":
                     return harmonyService.GetAccountInfo();
@@ -454,13 +529,19 @@ namespace HarmonyOSToolbox
                     if (commonInfo != null) await harmonyService.Build.CheckEcoAccount(commonInfo);
                     return harmonyService.GetAccountInfo();
                     
+                case "harmony_loginHuawei":
+                    var loginInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<CommonInfo>(dataStr);
+                    await OpenHuaweiOAuthWindow(loginInfo);
+                    return harmonyService.GetAccountInfo();
+                    
                 case "harmony_startBuild":
                     var buildCommon = Newtonsoft.Json.JsonConvert.DeserializeObject<CommonInfo>(dataStr);
                     if (buildCommon != null) await harmonyService.Build.StartBuild(buildCommon);
                     return harmonyService.GetBuildInfo();
 
                 case "harmony_openBigHap":
-                    return await SelectBigHapAsync();
+                    var result = await SelectBigHapAsync();
+                    return result ?? new { success = false, error = "No file selected" };
 
                 case "harmony_getGitBranches":
                     dynamic? urlObj = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(dataStr);
@@ -472,19 +553,76 @@ namespace HarmonyOSToolbox
             }
         }
 
+        private async Task OpenHuaweiOAuthWindow(CommonInfo? info)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    // 华为 OAuth 登录地址
+                    string oauthUrl = "https://oauth-login.cloud.huawei.com/oauth2/v3/authorize" +
+                        "?client_id=YOUR_CLIENT_ID" +
+                        "&response_type=code" +
+                        "&redirect_uri=YOUR_REDIRECT_URI" +
+                        "&scope=https://developer.huawei.com/consumer";
+                    
+                    // 使用系统默认浏览器打开
+                    var psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = oauthUrl,
+                        UseShellExecute = true
+                    };
+                    System.Diagnostics.Process.Start(psi);
+                    
+                    // TODO: 实现 OAuth 回调处理逻辑
+                    // 1. 设置本地 HTTP 服务器监听回调
+                    // 2. 获取 authorization code
+                    // 3. 交换 access token
+                    // 4. 保存到 harmonyService.Eco
+                    
+                    MessageBox.Show("请在浏览器中完成登录授权", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"打开登录窗口失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            });
+        }
+
         private async Task<object?> SelectBigHapAsync()
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Select HAP/APP/HSP File",
-                Filter = "HarmonyOS Package (*.hap;*.app;*.hsp)|*.hap;*.app;*.hsp",
-                Multiselect = false
-            };
+            string? selectedFile = null;
             
-            if (dialog.ShowDialog() == true)
+            // Run dialog on UI thread
+            bool? dialogResult = Dispatcher.Invoke(() => 
             {
-                 var bytes = await File.ReadAllBytesAsync(dialog.FileName);
-                 return await harmonyService!.SaveFileToLocal(bytes, Path.GetFileName(dialog.FileName));
+                var dialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Title = "Select HAP/APP/HSP File",
+                    Filter = "HarmonyOS Package (*.hap;*.app;*.hsp)|*.hap;*.app;*.hsp",
+                    Multiselect = false
+                };
+                
+                bool? result = dialog.ShowDialog();
+                if (result == true)
+                {
+                    selectedFile = dialog.FileName;
+                }
+                return result;
+            });
+
+            if (dialogResult == true && !string.IsNullOrEmpty(selectedFile))
+            {
+                 // Perform file I/O off the UI thread
+                 try 
+                 {
+                     var bytes = await File.ReadAllBytesAsync(selectedFile);
+                     return await harmonyService!.SaveFileToLocal(bytes, Path.GetFileName(selectedFile));
+                 }
+                 catch (Exception ex)
+                 {
+                     return new { success = false, error = $"File read error: {ex.Message}" };
+                 }
             }
             return null;
         }
@@ -510,17 +648,23 @@ namespace HarmonyOSToolbox
         {
             try
             {
-                var openFileDialog = new Microsoft.Win32.OpenFileDialog
+                string? apkPath = null;
+                
+                bool? result = Dispatcher.Invoke(() => 
                 {
-                    Title = "Select APK File",
-                    Filter = "Android Package (*.apk)|*.apk|All Files (*.*)|*.*",
-                    Multiselect = false
-                };
+                    var openFileDialog = new Microsoft.Win32.OpenFileDialog
+                    {
+                        Title = "Select APK File",
+                        Filter = "Android Package (*.apk)|*.apk|All Files (*.*)|*.*",
+                        Multiselect = false
+                    };
+                    bool? res = openFileDialog.ShowDialog();
+                    if (res == true) apkPath = openFileDialog.FileName;
+                    return res;
+                });
 
-                bool? result = openFileDialog.ShowDialog();
-                if (result == true)
+                if (result == true && !string.IsNullOrEmpty(apkPath))
                 {
-                    string apkPath = openFileDialog.FileName;
                     if (adbManager == null)
                     {
                         return new { success = false, message = "ADB Manager not initialized" };
@@ -541,16 +685,21 @@ namespace HarmonyOSToolbox
         {
             try
             {
-                var openFolderDialog = new Microsoft.Win32.OpenFolderDialog
-                {
-                    Title = "Select APK Folder",
-                    Multiselect = false
-                };
+                string? folderPath = null;
+                
+                bool? result = Dispatcher.Invoke(() => {
+                    var openFolderDialog = new Microsoft.Win32.OpenFolderDialog
+                    {
+                        Title = "Select APK Folder",
+                        Multiselect = false
+                    };
+                    bool? res = openFolderDialog.ShowDialog();
+                    if (res == true) folderPath = openFolderDialog.FolderName;
+                    return res;
+                });
 
-                bool? result = openFolderDialog.ShowDialog();
-                if (result == true)
+                if (result == true && !string.IsNullOrEmpty(folderPath))
                 {
-                    string folderPath = openFolderDialog.FolderName;
                     if (adbManager == null)
                     {
                         return new { success = false, message = "ADB Manager not initialized" };
