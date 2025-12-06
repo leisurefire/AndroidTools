@@ -557,16 +557,20 @@ namespace HarmonyOSToolbox
         {
             await Dispatcher.InvokeAsync(async () =>
             {
+                HarmonyAuthServer? authServer = null;
                 try
                 {
                     Console.WriteLine("[华为认证] 开始认证流程");
                     
                     // 使用 HarmonyAuthServer 进行正确的认证
-                    var authServer = new HarmonyAuthServer(harmonyService!.Eco);
+                    authServer = new HarmonyAuthServer(harmonyService!.Eco);
                     
                     // 订阅认证成功事件
-                    authServer.OnAuthSuccess += (sender, userInfo) =>
+                    authServer.OnAuthSuccess += async (sender, userInfo) =>
                     {
+                        // 延迟停止服务器，确保响应已发送
+                        await Task.Delay(500);
+                        
                         Dispatcher.Invoke(() =>
                         {
                             Console.WriteLine($"[华为认证] 登录成功: {userInfo.NickName}");
@@ -576,8 +580,16 @@ namespace HarmonyOSToolbox
                             // 保存认证信息
                             SaveAuthInfo(userInfo);
                             
-                            // 关闭认证服务器
-                            authServer?.Stop();
+                            // 延迟停止认证服务器
+                            try
+                            {
+                                authServer?.Stop();
+                                authServer?.Dispose();
+                            }
+                            catch (Exception stopEx)
+                            {
+                                Console.WriteLine($"[华为认证] 停止服务器时出错: {stopEx.Message}");
+                            }
                             
                             // 更新账号信息
                             if (harmonyService != null)
@@ -588,13 +600,25 @@ namespace HarmonyOSToolbox
                     };
                     
                     // 订阅认证失败事件
-                    authServer.OnAuthError += (sender, error) =>
+                    authServer.OnAuthError += async (sender, error) =>
                     {
+                        // 延迟停止服务器，确保响应已发送
+                        await Task.Delay(500);
+                        
                         Dispatcher.Invoke(() =>
                         {
                             Console.WriteLine($"[华为认证] 登录失败: {error}");
                             MessageBox.Show($"登录失败: {error}", "认证失败", MessageBoxButton.OK, MessageBoxImage.Error);
-                            authServer?.Stop();
+                            
+                            try
+                            {
+                                authServer?.Stop();
+                                authServer?.Dispose();
+                            }
+                            catch (Exception stopEx)
+                            {
+                                Console.WriteLine($"[华为认证] 停止服务器时出错: {stopEx.Message}");
+                            }
                         });
                     };
                     
@@ -610,7 +634,19 @@ namespace HarmonyOSToolbox
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[华为认证] 启动失败: {ex.Message}");
+                    Console.WriteLine($"[华为认证] 错误堆栈: {ex.StackTrace}");
                     MessageBox.Show($"启动认证失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    
+                    // 清理资源
+                    try
+                    {
+                        authServer?.Stop();
+                        authServer?.Dispose();
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        Console.WriteLine($"[华为认证] 清理资源时出错: {cleanupEx.Message}");
+                    }
                 }
             });
         }
