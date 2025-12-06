@@ -493,3 +493,11 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 ##################################################
 FodyWeavers.xsd
+
+##################################################
+# Harmony Toolchains (User Provided)
+##################################################
+tools/harmony/jbr/
+!tools/harmony/jbr/README.txt
+tools/harmony/toolchains/
+!tools/harmony/toolchains/README.txt

@@ -63,6 +63,9 @@ class PageLoader {
       main: "pages/main.html",
       animation: "pages/animation.html",
       help: "pages/help.html",
+      "harmony-upload": "harmony-upload",
+      "harmony-account": "harmony-account",
+      "harmony-build": "harmony-build"
     };
     this.currentPage = null;
     this.contentArea = null;
@@ -774,3 +777,90 @@ function updateMaxButton(state) {
             </svg>`;
   }
 }
+
+// ===== Mode Management =====
+class ModeManager {
+    constructor() {
+        this.currentMode = 'adb'; 
+        this.btnAdb = document.getElementById('modeAdb');
+        this.btnHarmony = document.getElementById('modeHarmony');
+        
+        if(this.btnAdb && this.btnHarmony) {
+            this.btnAdb.addEventListener('click', () => this.switchMode('adb'));
+            this.btnHarmony.addEventListener('click', () => this.switchMode('harmony'));
+        }
+    }
+    
+    switchMode(mode) {
+        this.currentMode = mode;
+        if (mode === 'adb') {
+            this.btnAdb.style.background = '#0078d4';
+            this.btnAdb.style.color = 'white';
+            this.btnHarmony.style.background = '';
+            this.btnHarmony.style.color = '';
+            this.updateSidebar('adb');
+            pageLoader.loadPage('function');
+        } else {
+            this.btnHarmony.style.background = '#0078d4';
+            this.btnHarmony.style.color = 'white';
+            this.btnAdb.style.background = '';
+            this.btnAdb.style.color = '';
+            this.updateSidebar('harmony');
+            pageLoader.loadPage('harmony-upload');
+        }
+    }
+    
+    updateSidebar(mode) {
+        const menu = document.querySelector('.nav-menu');
+        menu.innerHTML = '';
+        
+        if (mode === 'adb') {
+            menu.innerHTML = \
+            <li class='nav-item active' data-tab='function'>
+              <span class='icon'><svg viewBox='0 0 24 24'><path d='M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z'/></svg></span>
+              <span>主菜单</span>
+            </li>
+            <li class='nav-item' data-tab='custom'>
+              <span class='icon'><svg viewBox='0 0 24 24'><path d='M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z'/></svg></span>
+              <span>应用管理</span>
+            </li>
+            <li class='nav-item' data-tab='main'>
+               <span class='icon'><svg viewBox='0 0 24 24'><path d='M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z'/></svg></span>
+               <span>快捷卸载</span>
+            </li>
+            <li class='nav-item' data-tab='animation'>
+               <span class='icon'><svg viewBox='0 0 24 24'><path d='M22 8l-4-4h-9l-4 4H2v12h20V8zM8 18c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12-3h-8v-2h8v2zm0-4h-8V9h8v2z'/></svg></span>
+               <span>动画模式</span>
+            </li>
+            <li class='nav-item' data-tab='help'>
+               <span class='icon'><svg viewBox='0 0 24 24'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z'/></svg></span>
+               <span>帮助</span>
+            </li>\;
+        } else {
+            menu.innerHTML = \
+            <li class='nav-item active' data-tab='harmony-upload'>
+              <span class='icon'><svg viewBox='0 0 24 24'><path d='M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z' fill='currentColor'/></svg></span>
+              <span>应用上传</span>
+            </li>
+            <li class='nav-item' data-tab='harmony-account'>
+              <span class='icon'><svg viewBox='0 0 24 24'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' fill='currentColor'/></svg></span>
+              <span>账号管理</span>
+            </li>
+            <li class='nav-item' data-tab='harmony-build'>
+              <span class='icon'><svg viewBox='0 0 24 24'><path d='M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z' fill='currentColor'/></svg></span>
+              <span>构建安装</span>
+            </li>\;
+        }
+        
+        initTabs(); 
+    }
+}
+
+window.app = {
+    navigate: (page) => pageLoader.loadPage(page)
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    new ModeManager();
+});
+

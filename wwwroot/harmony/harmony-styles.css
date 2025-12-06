@@ -1,0 +1,111 @@
+.harmony-page {
+    padding: 20px;
+    color: var(--text-color, #333);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.upload-area {
+    border: 2px dashed #aaa;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: rgba(255,255,255,0.5);
+    transition: all 0.3s;
+}
+
+.upload-area:hover {
+    background-color: rgba(0,0,0,0.05);
+    border-color: #0078d4;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+h2, h3 {
+    margin-top: 0;
+}
+
+.step-list {
+    list-style: none;
+    padding: 0;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.step-status {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background: #ccc;
+}
+
+.step-status.finish {
+    background: #4caf50;
+}
+
+.step-status.loading {
+    background: #2196f3;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background-color: #0078d4;
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0063b1;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 5px;
+}
+
+.info-label {
+    width: 100px;
+    font-weight: bold;
+    color: #666;
+}
+
+.log-area {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: monospace;
+    padding: 10px;
+    border-radius: 4px;
+    height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}

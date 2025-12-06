@@ -1,0 +1,76 @@
+<div class="harmony-page">
+    <h2>上传应用</h2>
+    <div class="upload-area" id="dropZone">
+        <p>拖拽 .hap / .app / .hsp 文件到此处</p>
+        <p>或</p>
+        <button class="btn" id="btnSelectFile">选择大文件</button>
+        <input type="file" id="fileInput" style="display: none;" accept=".hap,.app,.hsp">
+    </div>
+    
+    <div class="card" id="fileInfo" style="display: none;">
+        <h3>文件信息</h3>
+        <div class="info-row"><span class="info-label">应用名称:</span> <span id="appName">-</span></div>
+        <div class="info-row"><span class="info-label">包名:</span> <span id="pkgName">-</span></div>
+        <div class="info-row"><span class="info-label">版本:</span> <span id="version">-</span></div>
+    </div>
+    
+    <button class="btn btn-primary" id="btnNext" style="display: none;">下一步</button>
+</div>
+<script>
+    (function() {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        
+        dropZone.addEventListener('click', (e) => {
+            if(e.target.id !== 'btnSelectFile') fileInput.click();
+        });
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#0078d4';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#aaa';
+        });
+
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#aaa';
+            if (e.dataTransfer.files.length > 0) {
+                const res = await harmonyApi.uploadHap(e.dataTransfer.files[0]);
+                showInfo(res);
+            }
+        });
+        
+        document.getElementById('btnSelectFile').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const res = await harmonyApi.openBigHap();
+            showInfo(res);
+        });
+        
+        fileInput.addEventListener('change', async (e) => {
+            if (e.target.files.length > 0) {
+                const res = await harmonyApi.uploadHap(e.target.files[0]);
+                showInfo(res);
+            }
+        });
+        
+        function showInfo(info) {
+            if (!info) return;
+            document.getElementById('fileInfo').style.display = 'block';
+            document.getElementById('appName').textContent = info.appName || 'Unknown';
+            document.getElementById('pkgName').textContent = info.packageName || 'Unknown';
+            document.getElementById('version').textContent = info.versionName || 'Unknown';
+            document.getElementById('btnNext').style.display = 'inline-block';
+            
+            window.currentHapInfo = info;
+        }
+        
+        document.getElementById('btnNext').addEventListener('click', () => {
+            // Dispatch navigation event
+            window.app.navigate('harmony-account');
+        });
+    })();
+</script>

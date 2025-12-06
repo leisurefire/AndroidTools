@@ -1,0 +1,52 @@
+<div class="harmony-page">
+    <h2>构建安装</h2>
+    <div class="card">
+        <h3>构建进度</h3>
+        <ul class="step-list" id="buildList"></ul>
+    </div>
+    
+    <button class="btn btn-primary" id="btnStart">开始构建安装</button>
+</div>
+<script>
+    (async function() {
+        const buildInfo = await harmonyApi.getBuildInfo();
+        renderSteps('buildList', buildInfo.steps || buildInfo.Steps);
+        
+        document.getElementById('btnStart').addEventListener('click', async () => {
+            if (!window.currentHapInfo) {
+                alert("请先上传HAP文件");
+                return;
+            }
+            // Poll status or just wait? startBuild returns immediate info but process takes time.
+            // Real implementation uses events or polling.
+            // Here we just call once, but startBuild is async and awaits SignAndInstall.
+            // So it returns AFTER finish or error.
+            try {
+                document.getElementById('btnStart').disabled = true;
+                document.getElementById('btnStart').textContent = "构建中...";
+                const newInfo = await harmonyApi.startBuild(window.currentHapInfo);
+                renderSteps('buildList', newInfo.steps || newInfo.Steps);
+            } catch (e) {
+                alert("构建失败: " + e.message);
+            } finally {
+                document.getElementById('btnStart').disabled = false;
+                document.getElementById('btnStart').textContent = "开始构建安装";
+            }
+        });
+        
+        function renderSteps(id, steps) {
+            const ul = document.getElementById(id);
+            ul.innerHTML = '';
+            if(!steps) return;
+            steps.forEach(step => {
+                const li = document.createElement('li');
+                li.className = 'step-item';
+                li.innerHTML = `
+                    <div class="step-status ${step.Finish || step.finish ? 'finish' : (step.Loading || step.loading ? 'loading' : '')}"></div>
+                    <span>${step.Name || step.name}</span>
+                `;
+                ul.appendChild(li);
+            });
+        }
+    })();
+</script>

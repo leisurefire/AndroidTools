@@ -6,12 +6,15 @@ using System.Windows.Interop;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using System.IO;
+using HarmonyOSToolbox.Services.Harmony;
+using HarmonyOSToolbox.Models.Harmony;
 
 namespace HarmonyOSToolbox
 {
     public partial class MainWindow : Window
     {
         private AdbManager? adbManager;
+        private HarmonyCoreService? harmonyService;
 
         // Windows 11 Mica P/Invoke
         [DllImport("dwmapi.dll")]
@@ -197,10 +200,11 @@ namespace HarmonyOSToolbox
                 try
                 {
                     adbManager = new AdbManager();
+                    harmonyService = new HarmonyCoreService();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"ADB Initialization Warning: {ex.Message}", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"ADB/Harmony Initialization Warning: {ex.Message}", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
 
                 // Wait for WebView2 initialization
@@ -346,6 +350,9 @@ namespace HarmonyOSToolbox
                     // Page Loading (fix CORS issue)
                     "loadPage" => LoadPageContent(request.Data?.ToString() ?? ""),
 
+                    // Harmony OS
+                    _ when request.Action != null && request.Action.StartsWith("harmony_") => await HandleHarmonyRequest(request),
+
                     _ => new { success = false, error = "Unknown action" }
                 };
 
@@ -392,7 +399,18 @@ namespace HarmonyOSToolbox
         {
             try
             {
-                string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "pages", $"{pageId}.html");
+                string relativePath;
+                if (pageId.StartsWith("harmony-"))
+                {
+                    var name = pageId.Substring(8); // remove harmony-
+                    relativePath = Path.Combine("harmony", "pages", $"{name}.html");
+                }
+                else
+                {
+                    relativePath = Path.Combine("pages", $"{pageId}.html");
+                }
+
+                string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", relativePath);
                 
                 if (!File.Exists(htmlPath))
                 {
@@ -408,6 +426,74 @@ namespace HarmonyOSToolbox
             }
         }
 
+
+        private async Task<object> HandleHarmonyRequest(ApiRequest request)
+        {
+            if (harmonyService == null) return new { success = false, error = "Harmony service not initialized" };
+            
+            var dataStr = request.Data?.ToString() ?? "{}";
+
+            switch (request.Action)
+            {
+                case "harmony_getEnvInfo":
+                    return harmonyService.GetEnvInfo();
+                    
+                case "harmony_getAccountInfo":
+                    return harmonyService.GetAccountInfo();
+                    
+                case "harmony_getBuildInfo":
+                    return harmonyService.GetBuildInfo();
+                    
+                case "harmony_uploadHap":
+                    var uploadData = Newtonsoft.Json.JsonConvert.DeserializeObject<UploadHapDto>(dataStr);
+                    if (uploadData == null) return new { success = false, error = "Invalid data" };
+                    return await harmonyService.SaveFileToLocal(uploadData.Buffer, uploadData.FileName);
+                    
+                case "harmony_checkAccount":
+                    var commonInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<CommonInfo>(dataStr);
+                    if (commonInfo != null) await harmonyService.Build.CheckEcoAccount(commonInfo);
+                    return harmonyService.GetAccountInfo();
+                    
+                case "harmony_startBuild":
+                    var buildCommon = Newtonsoft.Json.JsonConvert.DeserializeObject<CommonInfo>(dataStr);
+                    if (buildCommon != null) await harmonyService.Build.StartBuild(buildCommon);
+                    return harmonyService.GetBuildInfo();
+
+                case "harmony_openBigHap":
+                    return await SelectBigHapAsync();
+
+                case "harmony_getGitBranches":
+                    dynamic? urlObj = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(dataStr);
+                    string url = urlObj?.url?.ToString() ?? "";
+                    return await harmonyService.GetGitBranches(url);
+                    
+                default:
+                     return new { success = false, error = "Unknown harmony action" };
+            }
+        }
+
+        private async Task<object?> SelectBigHapAsync()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Select HAP/APP/HSP File",
+                Filter = "HarmonyOS Package (*.hap;*.app;*.hsp)|*.hap;*.app;*.hsp",
+                Multiselect = false
+            };
+            
+            if (dialog.ShowDialog() == true)
+            {
+                 var bytes = await File.ReadAllBytesAsync(dialog.FileName);
+                 return await harmonyService!.SaveFileToLocal(bytes, Path.GetFileName(dialog.FileName));
+            }
+            return null;
+        }
+
+        public class UploadHapDto
+        {
+            public byte[] Buffer { get; set; } = Array.Empty<byte>();
+            public string FileName { get; set; } = string.Empty;
+        }
 
         private void SendResponse(string requestId, object result)
         {
