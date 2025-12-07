@@ -289,7 +289,19 @@ namespace HarmonyOSToolbox.Services.Harmony
     public class CreateProfileResponse
     {
         [JsonPropertyName("data")]
-        public ProfileInfo Data { get; set; } = new();
+        public ProfileData Data { get; set; } = new();
+    }
+    
+    public class ProfileData
+    {
+        [JsonPropertyName("provisionId")]
+        public string ProvisionId { get; set; } = string.Empty;
+        
+        [JsonPropertyName("provisionObjectId")]
+        public string ProvisionObjectId { get; set; } = string.Empty;
+        
+        [JsonPropertyName("provisionName")]
+        public string ProvisionName { get; set; } = string.Empty;
     }
 
     public class DownloadUrlResponse

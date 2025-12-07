@@ -539,6 +539,15 @@ namespace HarmonyOSToolbox
                     if (buildCommon != null) await harmonyService.Build.StartBuild(buildCommon);
                     return harmonyService.GetBuildInfo();
 
+                case "harmony_applyCertAndProfile":
+                    var certInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<CommonInfo>(dataStr);
+                    if (certInfo != null) 
+                    {
+                        var certResult = await harmonyService.Build.ApplyCertAndProfile(certInfo);
+                        return certResult;
+                    }
+                    return new { success = false, error = "Invalid data" };
+
                 case "harmony_openBigHap":
                     var result = await SelectBigHapAsync();
                     return result ?? new { success = false, error = "No file selected" };
@@ -591,10 +600,23 @@ namespace HarmonyOSToolbox
                                 Console.WriteLine($"[华为认证] 停止服务器时出错: {stopEx.Message}");
                             }
                             
-                            // 更新账号信息
+                            // 更新账号信息（使用 fire-and-forget 模式）
                             if (harmonyService != null)
                             {
-                                _ = harmonyService.Build.CheckEcoAccount(info ?? new CommonInfo());
+                                _ = Task.Run(async () =>
+                                {
+                                    await harmonyService.Build.CheckEcoAccount(info ?? new CommonInfo());
+                                    
+                                    // 通知前端刷新账号状态（需要在 UI 线程上执行）
+                                    Dispatcher.Invoke(() =>
+                                    {
+                                        SendResponse("harmonyAccountUpdated", new {
+                                            success = true,
+                                            message = "账号状态已更新",
+                                            userName = userInfo.NickName ?? userInfo.UserId
+                                        });
+                                    });
+                                });
                             }
                         });
                     };
@@ -629,7 +651,8 @@ namespace HarmonyOSToolbox
                     // 打开浏览器进行认证
                     authServer.OpenAuthPage();
                     
-                    MessageBox.Show("请在浏览器中完成登录授权", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // 不再显示弹窗提示，直接等待用户在浏览器中完成认证
+                    Console.WriteLine("[华为认证] 已打开浏览器，等待用户完成认证...");
                 }
                 catch (Exception ex)
                 {
@@ -652,14 +675,15 @@ namespace HarmonyOSToolbox
         }
 
         /// <summary>
-        /// 保存认证信息到文件
+        /// 保存认证信息到文件（保存到 HarmonyDownloadHelper.ConfigDir 目录）
         /// </summary>
         private void SaveAuthInfo(UserInfo userInfo)
         {
             try
             {
                 var json = Newtonsoft.Json.JsonConvert.SerializeObject(userInfo);
-                string configDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config");
+                // 使用与 HarmonyDownloadHelper 相同的配置目录
+                string configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".autoPublisher", "config");
                 if (!Directory.Exists(configDir))
                 {
                     Directory.CreateDirectory(configDir);

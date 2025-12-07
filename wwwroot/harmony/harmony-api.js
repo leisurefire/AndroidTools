@@ -2,6 +2,7 @@ class HarmonyAPI {
   constructor() {
     this.requestIdCounter = 0;
     this.pendingRequests = new Map();
+    this.accountUpdateCallbacks = [];
 
     if (window.chrome && window.chrome.webview) {
       window.chrome.webview.addEventListener("message", (event) => {
@@ -9,6 +10,14 @@ class HarmonyAPI {
         try {
           const response =
             typeof message === "string" ? JSON.parse(message) : message;
+
+          // 处理账号更新通知
+          if (response.requestId === "harmonyAccountUpdated") {
+            console.log("[HarmonyAPI] 收到账号更新通知:", response.result);
+            this.accountUpdateCallbacks.forEach((cb) => cb(response.result));
+            return;
+          }
+
           if (
             response.requestId &&
             this.pendingRequests.has(response.requestId)
@@ -28,6 +37,18 @@ class HarmonyAPI {
         }
       });
     }
+  }
+
+  // 注册账号更新回调
+  onAccountUpdate(callback) {
+    this.accountUpdateCallbacks.push(callback);
+    // 返回取消注册函数
+    return () => {
+      const index = this.accountUpdateCallbacks.indexOf(callback);
+      if (index > -1) {
+        this.accountUpdateCallbacks.splice(index, 1);
+      }
+    };
   }
 
   send(action, data = null) {
@@ -84,6 +105,9 @@ class HarmonyAPI {
   }
   async startBuild(info) {
     return this.send("harmony_startBuild", info);
+  }
+  async applyCertAndProfile(info) {
+    return this.send("harmony_applyCertAndProfile", info);
   }
   async getGitBranches(url) {
     return this.send("harmony_getGitBranches", { url });

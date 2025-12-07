@@ -4,39 +4,187 @@
   <div class="card">
     <h3>账号状态</h3>
     <ul class="step-list" id="accList"></ul>
-    <button class="btn" id="btnLogin">登录华为账号</button>
+    <div style="display: flex; gap: 10px; margin-top: 10px">
+      <button class="btn" id="btnLogin">登录华为账号</button>
+      <button class="btn btn-primary" id="btnApplyCert" style="display: none">
+        申请证书和Profile
+      </button>
+    </div>
   </div>
 
   <button class="btn btn-primary" id="btnNextAcc">下一步</button>
 </div>
 <script>
   (async function () {
+    let authTimeoutId = null;
+    let unregisterCallback = null;
+
     async function loadAccountInfo() {
       try {
         const accInfo = await harmonyApi.getAccountInfo();
         renderSteps("accList", accInfo.steps || accInfo.Steps);
+        // 更新登录按钮状态
+        updateLoginButtonState(accInfo);
       } catch (error) {
         console.error("加载账号信息失败:", error);
       }
     }
 
+    // 更新登录按钮状态
+    function updateLoginButtonState(accInfo) {
+      const btnLogin = document.getElementById("btnLogin");
+      const btnApplyCert = document.getElementById("btnApplyCert");
+      if (!btnLogin) return;
+
+      const steps = accInfo.steps || accInfo.Steps || [];
+      const loginStep = steps.find(
+        (s) => (s.Name || s.name) === "登录华为账号"
+      );
+
+      if (loginStep && (loginStep.Finish || loginStep.finish)) {
+        btnLogin.textContent = "已登录";
+        btnLogin.disabled = true;
+        btnLogin.classList.add("btn-disabled");
+        // 清除超时计时器
+        clearAuthTimeout();
+
+        // 显示"申请证书和Profile"按钮
+        if (btnApplyCert) {
+          btnApplyCert.style.display = "inline-block";
+
+          // 检查是否所有证书和Profile步骤都已完成
+          const certStep = steps.find(
+            (s) => (s.Name || s.name) === "申请调试证书"
+          );
+          const profileStep = steps.find(
+            (s) => (s.Name || s.name) === "申请调试Profile"
+          );
+
+          if (
+            certStep &&
+            profileStep &&
+            (certStep.Finish || certStep.finish) &&
+            (profileStep.Finish || profileStep.finish)
+          ) {
+            btnApplyCert.textContent = "已完成";
+            btnApplyCert.disabled = true;
+            btnApplyCert.classList.add("btn-disabled");
+          } else {
+            btnApplyCert.textContent = "申请证书和Profile";
+            btnApplyCert.disabled = false;
+            btnApplyCert.classList.remove("btn-disabled");
+          }
+        }
+      } else {
+        btnLogin.textContent = "登录华为账号";
+        btnLogin.disabled = false;
+        btnLogin.classList.remove("btn-disabled");
+
+        // 隐藏"申请证书和Profile"按钮
+        if (btnApplyCert) {
+          btnApplyCert.style.display = "none";
+        }
+      }
+    }
+
+    // 清除认证超时计时器
+    function clearAuthTimeout() {
+      if (authTimeoutId) {
+        clearTimeout(authTimeoutId);
+        authTimeoutId = null;
+      }
+    }
+
+    // 重置按钮状态
+    function resetButtonState() {
+      const btnLogin = document.getElementById("btnLogin");
+      if (!btnLogin) return;
+
+      btnLogin.textContent = "登录华为账号";
+      btnLogin.disabled = false;
+      btnLogin.classList.remove("btn-disabled");
+    }
+
     // 初始加载
     await loadAccountInfo();
+
+    // 监听账号更新事件（后端认证成功后会推送）
+    unregisterCallback = harmonyApi.onAccountUpdate(async (result) => {
+      console.log("[账号页面] 收到账号更新通知:", result);
+      // 清除超时计时器
+      clearAuthTimeout();
+      // 重新加载账号信息
+      await loadAccountInfo();
+    });
+
+    // 页面卸载时清理回调和超时
+    window.addEventListener("beforeunload", () => {
+      if (unregisterCallback) {
+        unregisterCallback();
+      }
+      clearAuthTimeout();
+    });
 
     const btnLogin = document.getElementById("btnLogin");
     if (btnLogin) {
       btnLogin.addEventListener("click", async () => {
         try {
-          // Call login API
-          const newInfo = await harmonyApi.loginHuawei(
-            window.currentHapInfo || {}
-          );
-          // 重新加载账号信息以获取最新状态
-          await loadAccountInfo();
-          console.log("账号状态已更新");
+          // 显示等待状态
+          btnLogin.textContent = "等待登录...";
+          btnLogin.disabled = true;
+
+          // 设置超时机制（5分钟）
+          authTimeoutId = setTimeout(() => {
+            console.log("[账号页面] 认证超时，恢复按钮状态");
+            resetButtonState();
+            alert("登录超时，请重试");
+          }, 5 * 60 * 1000);
+
+          // Call login API - 这会打开浏览器进行认证
+          await harmonyApi.loginHuawei(window.currentHapInfo || {});
+          // 注意：不在这里立即刷新，等待后端推送账号更新通知
+          console.log("登录请求已发送，等待用户在浏览器中完成认证...");
         } catch (error) {
           console.error("登录失败:", error);
           alert("登录失败: " + error.message);
+          // 清除超时计时器
+          clearAuthTimeout();
+          // 恢复按钮状态
+          resetButtonState();
+        }
+      });
+    }
+
+    // 申请证书和Profile按钮事件
+    const btnApplyCert = document.getElementById("btnApplyCert");
+    if (btnApplyCert) {
+      btnApplyCert.addEventListener("click", async () => {
+        try {
+          // 显示等待状态
+          btnApplyCert.textContent = "申请中...";
+          btnApplyCert.disabled = true;
+
+          console.log("[账号页面] 开始申请证书和Profile...");
+
+          // 调用申请接口
+          const result = await harmonyApi.applyCertAndProfile(
+            window.currentHapInfo || {}
+          );
+
+          if (result.success) {
+            console.log("[账号页面] 证书和Profile申请成功");
+            alert("证书和Profile申请成功！");
+            // 重新加载账号信息以更新状态
+            await loadAccountInfo();
+          } else {
+            throw new Error(result.error || "申请失败");
+          }
+        } catch (error) {
+          console.error("[账号页面] 申请失败:", error);
+          alert("申请失败: " + error.message);
+          // 恢复按钮状态
+          btnApplyCert.textContent = "申请证书和Profile";
+          btnApplyCert.disabled = false;
         }
       });
     }
